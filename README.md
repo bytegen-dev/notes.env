@@ -2,6 +2,9 @@
 
 A secure notes application built with React Native and Expo. Features passcode protection, biometric authentication, encrypted exports.
 
+Demo Video (WIP version)
+https://drive.google.com/file/d/1mim5UEt0VO6bbnHXHQ9ip8bnf0EWerzK/view?usp=sharing
+
 ## Features
 
 - **Secure Notes** - Passcode protection with optional biometric authentication (Face ID/Fingerprint)
