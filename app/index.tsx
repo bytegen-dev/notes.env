@@ -21,6 +21,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { SettingsModal } from "../components/SettingsModal";
 import { SplashScreen } from "../components/SplashScreen";
 import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note, storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 
@@ -38,6 +39,7 @@ export default function Index() {
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  const { t, language } = useLanguage();
   const { bgColor, cardBg, borderColor, accentColor } = useTheme();
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function Index() {
 
   useEffect(() => {
     updateSections();
-  }, [notes, searchQuery, isPinnedCollapsed]);
+  }, [notes, searchQuery, isPinnedCollapsed, language]);
 
   const loadNotes = async () => {
     const loadedNotes = await storage.getNotes();
@@ -90,7 +92,7 @@ export default function Index() {
     }
 
     // Group notes by time periods
-    const grouped = groupNotesByTime(notesToGroup);
+    const grouped = groupNotesByTime(notesToGroup, t);
     setSections(grouped);
   };
 
@@ -137,24 +139,20 @@ export default function Index() {
   };
 
   const deleteNote = async (id: string) => {
-    Alert.alert(
-      "Delete Note",
-      "Are you sure you want to delete this note? This action cannot be undone.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert(t.alerts.deleteNoteTitle, t.alerts.deleteNoteMessage, [
+      {
+        text: t.alerts.cancel,
+        style: "cancel",
+      },
+      {
+        text: t.alerts.delete,
+        style: "destructive",
+        onPress: async () => {
+          await storage.deleteNote(id);
+          await loadNotes();
         },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            await storage.deleteNote(id);
-            await loadNotes();
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const exportNotes = async () => {
@@ -169,14 +167,14 @@ export default function Index() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(file.uri, {
           mimeType: "application/json",
-          dialogTitle: "Export Notes",
+          dialogTitle: t.settings.exportNotes,
         });
       } else {
-        Alert.alert("Export", "Sharing is not available on this device");
+        Alert.alert(t.settings.exportNotes, t.alerts.sharingNotAvailable);
       }
     } catch (error) {
       console.error("Error exporting notes:", error);
-      Alert.alert("Error", "Failed to export notes");
+      Alert.alert(t.alerts.error, t.alerts.exportFailed);
     }
   };
 
@@ -198,10 +196,7 @@ export default function Index() {
 
       // Validate that it's an array
       if (!Array.isArray(importedData)) {
-        Alert.alert(
-          "Error",
-          "Invalid file format. Expected an array of notes."
-        );
+        Alert.alert(t.alerts.error, t.alerts.invalidFileFormat);
         return;
       }
 
@@ -225,7 +220,7 @@ export default function Index() {
         }));
 
       if (validNotes.length === 0) {
-        Alert.alert("Error", "No valid notes found in the file.");
+        Alert.alert(t.alerts.error, t.alerts.noValidNotes);
         return;
       }
 
@@ -236,30 +231,33 @@ export default function Index() {
       if (existingNotes.length === 0) {
         await storage.saveNotes(validNotes);
         await loadNotes();
-        Alert.alert("Success", `Imported ${validNotes.length} note(s).`);
+        Alert.alert(t.alerts.success, t.alerts.imported(validNotes.length));
         return;
       }
 
       // Ask user if they want to replace or merge
       Alert.alert(
-        "Import Notes",
-        `Found ${validNotes.length} note(s). Do you want to replace all existing notes or merge them (overwriting notes with matching IDs)?`,
+        t.alerts.importNotesTitle,
+        t.alerts.importNotesMessage(validNotes.length),
         [
           {
-            text: "Cancel",
+            text: t.alerts.cancel,
             style: "cancel",
           },
           {
-            text: "Replace",
+            text: t.alerts.replace,
             style: "destructive",
             onPress: async () => {
               await storage.saveNotes(validNotes);
               await loadNotes();
-              Alert.alert("Success", `Imported ${validNotes.length} note(s).`);
+              Alert.alert(
+                t.alerts.success,
+                t.alerts.imported(validNotes.length)
+              );
             },
           },
           {
-            text: "Merge",
+            text: t.alerts.merge,
             onPress: async () => {
               const currentNotes = await storage.getNotes();
               const existingIds = new Set(currentNotes.map((n) => n.id));
@@ -291,22 +289,19 @@ export default function Index() {
 
               const message =
                 updatedCount > 0 && addedCount > 0
-                  ? `Updated ${updatedCount} note(s) and added ${addedCount} new note(s).`
+                  ? t.alerts.updatedAndAdded(updatedCount, addedCount)
                   : updatedCount > 0
-                  ? `Updated ${updatedCount} note(s).`
-                  : `Added ${addedCount} new note(s).`;
+                  ? t.alerts.updated(updatedCount)
+                  : t.alerts.added(addedCount);
 
-              Alert.alert("Success", message);
+              Alert.alert(t.alerts.success, message);
             },
           },
         ]
       );
     } catch (error) {
       console.error("Error importing notes:", error);
-      Alert.alert(
-        "Error",
-        "Failed to import notes. Please check the file format."
-      );
+      Alert.alert(t.alerts.error, t.alerts.importFailed);
     }
   };
 
@@ -367,10 +362,11 @@ export default function Index() {
                   <SectionHeader
                     title={item.section.title}
                     isCollapsed={
-                      item.section.title === "Pinned" && isPinnedCollapsed
+                      item.section.title === t.sections.pinned &&
+                      isPinnedCollapsed
                     }
                     onToggle={
-                      item.section.title === "Pinned"
+                      item.section.title === t.sections.pinned
                         ? () => setIsPinnedCollapsed(!isPinnedCollapsed)
                         : undefined
                     }
@@ -394,10 +390,10 @@ export default function Index() {
               const isLastInSection =
                 sectionData[sectionData.length - 1]?.id === itemNote.note.id;
 
-              if (section.title === "Pinned") {
+              if (section.title === t.sections.pinned) {
                 // For Pinned section, wrap all items in AnimatedSection with container
                 const pinnedSection = sections.find(
-                  (s) => s.title === "Pinned"
+                  (s) => s.title === t.sections.pinned
                 );
                 const isFirstPinnedItem =
                   pinnedSection?.data[0]?.id === itemNote.note.id;

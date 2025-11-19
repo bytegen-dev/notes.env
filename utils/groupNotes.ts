@@ -5,7 +5,12 @@ export interface NoteSection {
   data: Note[];
 }
 
-const getDateCategory = (timestamp: number): string => {
+type TranslationFunction = typeof import("./i18n/translations").translations.en;
+
+const getDateCategory = (
+  timestamp: number,
+  t: TranslationFunction
+): string => {
   const now = new Date();
   const noteDate = new Date(timestamp);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -23,19 +28,19 @@ const getDateCategory = (timestamp: number): string => {
   );
 
   if (noteDateOnly.getTime() === today.getTime()) {
-    return "Today";
+    return t.sections.today;
   }
 
   if (noteDateOnly.getTime() === yesterday.getTime()) {
-    return "Yesterday";
+    return t.sections.yesterday;
   }
 
   if (noteDate >= sevenDaysAgo && noteDate < yesterday) {
-    return "Previous 7 Days";
+    return t.sections.previous7Days;
   }
 
   if (noteDate >= thirtyDaysAgo && noteDate < sevenDaysAgo) {
-    return "Previous 30 Days";
+    return t.sections.previous30Days;
   }
 
   // For older dates, group by month and year
@@ -66,7 +71,10 @@ const getDateCategory = (timestamp: number): string => {
   return year.toString();
 };
 
-export const groupNotesByTime = (notes: Note[]): NoteSection[] => {
+export const groupNotesByTime = (
+  notes: Note[],
+  t: TranslationFunction
+): NoteSection[] => {
   // Separate pinned notes
   const pinnedNotes = notes.filter((note) => note.pinned ?? false);
   const unpinnedNotes = notes.filter((note) => !(note.pinned ?? false));
@@ -80,7 +88,7 @@ export const groupNotesByTime = (notes: Note[]): NoteSection[] => {
   const grouped = new Map<string, Note[]>();
 
   sortedUnpinned.forEach((note) => {
-    const category = getDateCategory(note.updatedAt);
+    const category = getDateCategory(note.updatedAt, t);
     if (!grouped.has(category)) {
       grouped.set(category, []);
     }
@@ -93,17 +101,17 @@ export const groupNotesByTime = (notes: Note[]): NoteSection[] => {
   // Add Pinned section if there are pinned notes
   if (pinnedNotes.length > 0) {
     sections.push({
-      title: "Pinned",
+      title: t.sections.pinned,
       data: pinnedNotes.sort((a, b) => b.updatedAt - a.updatedAt),
     });
   }
 
   // Define order for time-based sections
   const timeOrder = [
-    "Today",
-    "Yesterday",
-    "Previous 7 Days",
-    "Previous 30 Days",
+    t.sections.today,
+    t.sections.yesterday,
+    t.sections.previous7Days,
+    t.sections.previous30Days,
   ];
 
   // Add time-based sections in order

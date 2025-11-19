@@ -1,5 +1,6 @@
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { formatDate } from "../utils/formatDate";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 
@@ -18,16 +19,17 @@ export const NoteCard = ({
   onDelete,
   isLast = false,
 }: NoteCardProps) => {
+  const { t } = useLanguage();
   const { cardBg, textColor, mutedColor, borderColor } = useTheme();
 
   const handleLongPress = () => {
     if (!onPin && !onDelete) return;
 
-    Alert.alert(note.title || "Untitled", undefined, [
+    Alert.alert(note.title || t.noteCard.untitled, undefined, [
       ...(onPin
         ? [
             {
-              text: note.pinned ? "Unpin" : "Pin",
+              text: note.pinned ? t.noteCard.unpin : t.noteCard.pin,
               onPress: () => onPin(note.id),
             },
           ]
@@ -35,14 +37,14 @@ export const NoteCard = ({
       ...(onDelete
         ? [
             {
-              text: "Delete",
+              text: t.noteCard.delete,
               style: "destructive" as const,
               onPress: () => onDelete(note.id),
             },
           ]
         : []),
       {
-        text: "Cancel",
+        text: t.alerts.cancel,
         style: "cancel" as const,
       },
     ]);
@@ -68,7 +70,7 @@ export const NoteCard = ({
           style={{ color: textColor }}
           numberOfLines={1}
         >
-          {note.title || "Untitled"}
+          {note.title || t.noteCard.untitled}
         </Text>
         {note.content ? (
           <Text

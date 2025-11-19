@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
@@ -33,6 +34,7 @@ export const NoteEditor = ({
   onClose,
   onSave,
 }: NoteEditorProps) => {
+  const { t } = useLanguage();
   const { textColor, mutedColor, isDark, accentColor } = useTheme();
 
   // Use a muted background for the modal
@@ -53,7 +55,7 @@ export const NoteEditor = ({
   const canSave = hasTitle && hasChanges;
 
   // Determine header text
-  const headerText = isNewNote ? "新しいノート" : "ノートを編集";
+  const headerText = isNewNote ? t.noteEditor.newNote : t.noteEditor.editNote;
 
   const headerContent = (
     <View className="flex-row justify-between items-center">
@@ -109,7 +111,7 @@ export const NoteEditor = ({
           contentContainerStyle={{ paddingTop: 70 }}
         >
           <TextInput
-            placeholder="名前"
+            placeholder={t.noteEditor.titlePlaceholder}
             placeholderTextColor={mutedColor}
             value={title}
             onChangeText={onTitleChange}
@@ -118,7 +120,7 @@ export const NoteEditor = ({
             autoFocus
           />
           <TextInput
-            placeholder="被害者の情報を入力してください..."
+            placeholder={t.noteEditor.contentPlaceholder}
             placeholderTextColor={mutedColor}
             value={content}
             onChangeText={onContentChange}

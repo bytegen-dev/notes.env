@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
 
@@ -27,6 +28,7 @@ export const SettingsModal = ({
   onExport,
   onImport,
 }: SettingsModalProps) => {
+  const { t, language, setLanguage } = useLanguage();
   const {
     textColor,
     mutedColor,
@@ -40,21 +42,22 @@ export const SettingsModal = ({
   const modalBg = isDark ? "#0a0a0a" : "#fafafa";
 
   const handleClearData = () => {
-    Alert.alert(
-      "データをクリア",
-      "本当に被害者を完全に削除しますか？この操作は元に戻すことができません。被害者は永遠に失われます。",
-      [
-        {
-          text: "キャンセル",
-          style: "cancel",
-        },
-        {
-          text: "データをクリア",
-          style: "destructive",
-          onPress: onClearData,
-        },
-      ]
-    );
+    Alert.alert(t.alerts.clearDataTitle, t.alerts.clearDataMessage, [
+      {
+        text: t.alerts.cancel,
+        style: "cancel",
+      },
+      {
+        text: t.alerts.clearData,
+        style: "destructive",
+        onPress: onClearData,
+      },
+    ]);
+  };
+
+  const handleLanguageChange = () => {
+    const newLanguage = language === "ja" ? "en" : "ja";
+    setLanguage(newLanguage);
   };
 
   const headerContent = (
@@ -63,7 +66,7 @@ export const SettingsModal = ({
         <X size={24} strokeWidth={2.5} />
       </IconButton>
       <Text className="text-lg font-semibold" style={{ color: textColor }}>
-        設定
+        {t.settings.title}
       </Text>
       <View className="w-11" />
     </View>
@@ -105,6 +108,25 @@ export const SettingsModal = ({
           contentContainerStyle={{ paddingTop: 70 }}
         >
           <TouchableOpacity
+            onPress={handleLanguageChange}
+            className="p-4 rounded-xl border mb-3"
+            style={{
+              backgroundColor: cardBg,
+              borderColor: borderColor,
+            }}
+          >
+            <Text
+              className="text-base font-semibold"
+              style={{ color: textColor }}
+            >
+              {t.settings.language}
+            </Text>
+            <Text className="text-sm mt-1" style={{ color: mutedColor }}>
+              {t.settings.languageDesc} (
+              {language === "ja" ? t.settings.japanese : t.settings.english})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={onImport}
             className="p-4 rounded-xl border mb-3"
             style={{
@@ -116,10 +138,10 @@ export const SettingsModal = ({
               className="text-base font-semibold"
               style={{ color: textColor }}
             >
-              被害者をインポート
+              {t.settings.importNotes}
             </Text>
             <Text className="text-sm mt-1" style={{ color: mutedColor }}>
-              被害者をJSONファイルからインポート
+              {t.settings.importNotesDesc}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -134,10 +156,10 @@ export const SettingsModal = ({
               className="text-base font-semibold"
               style={{ color: textColor }}
             >
-              被害者をエクスポート
+              {t.settings.exportNotes}
             </Text>
             <Text className="text-sm mt-1" style={{ color: mutedColor }}>
-              被害者をJSONファイルとしてエクスポート
+              {t.settings.exportNotesDesc}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -152,13 +174,13 @@ export const SettingsModal = ({
               className="text-base font-semibold"
               style={{ color: "#ffffff" }}
             >
-              データをクリア
+              {t.settings.clearData}
             </Text>
             <Text
               className="text-sm mt-1"
               style={{ color: "rgba(255, 255, 255, 0.8)" }}
             >
-              アプリをリセットして被害者を完全に削除
+              {t.settings.clearDataDesc}
             </Text>
           </TouchableOpacity>
         </ScrollView>
