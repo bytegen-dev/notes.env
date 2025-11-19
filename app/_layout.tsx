@@ -12,12 +12,12 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: {
-            backgroundColor: "#000000",
-          },
           // contentStyle: {
-          //   backgroundColor: bgColor,
+          //   backgroundColor: "#000000",
           // },
+          contentStyle: {
+            backgroundColor: bgColor,
+          },
         }}
       />
     </LanguageProvider>

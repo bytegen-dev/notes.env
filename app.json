@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to unlock your notes securely"
-      }
+      },
+      "bundleIdentifier": "com.anonymous.notesenv"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +21,8 @@
         "foregroundImage": "./assets/images/image.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.notesenv"
     },
     "web": {
       "output": "static",
@@ -35,7 +37,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#000000",
           "dark": {
             "backgroundColor": "#000000"
           }
