@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
 
@@ -24,6 +25,7 @@ export const Header = ({
   searchQuery,
   onSearchChange,
 }: HeaderProps) => {
+  const { t } = useLanguage();
   const { textColor, isDark, mutedColor, cardBg, borderColor } = useTheme();
 
   const blurContent = (
@@ -64,7 +66,7 @@ export const Header = ({
       >
         <Search size={16} color={mutedColor} />
         <TextInput
-          placeholder="被害者を検索..."
+          placeholder={t.header.searchPlaceholder}
           placeholderTextColor={mutedColor}
           value={searchQuery}
           onChangeText={onSearchChange}

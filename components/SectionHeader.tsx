@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { useTheme } from "../utils/useTheme";
 
 interface SectionHeaderProps {
@@ -13,8 +14,9 @@ export const SectionHeader = ({
   isCollapsed = false,
   onToggle,
 }: SectionHeaderProps) => {
+  const { t } = useLanguage();
   const { textColor, accentColor } = useTheme();
-  const isPinned = title === "Pinned";
+  const isPinned = title === t.sections.pinned;
 
   return (
     <View className="flex-row items-center justify-between mb-3">
