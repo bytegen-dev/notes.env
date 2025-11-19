@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Plus, Search } from "lucide-react-native";
+import { LockOpen, Search } from "lucide-react-native";
 import {
   Image,
   Platform,
@@ -44,12 +44,15 @@ export const Header = ({
             }}
             resizeMode="contain"
           />
-          <Text className="text-2xl font-bold" style={{ color: textColor }}>
-            Notes
+          <Text
+            className="text-2xl font-mono font-bold tracking-tighter"
+            style={{ color: textColor }}
+          >
+            notes.env
           </Text>
         </TouchableOpacity>
-        <IconButton onPress={onAddPress} variant="outline">
-          <Plus size={24} strokeWidth={2.5} />
+        <IconButton onPress={() => {}} variant="outline">
+          <LockOpen size={20} />
         </IconButton>
       </View>
       <View
@@ -61,7 +64,7 @@ export const Header = ({
       >
         <Search size={16} color={mutedColor} />
         <TextInput
-          placeholder="Search notes..."
+          placeholder="被害者を検索..."
           placeholderTextColor={mutedColor}
           value={searchQuery}
           onChangeText={onSearchChange}

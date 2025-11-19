@@ -27,22 +27,29 @@ export const SettingsModal = ({
   onExport,
   onImport,
 }: SettingsModalProps) => {
-  const { textColor, mutedColor, isDark, cardBg, borderColor } = useTheme();
+  const {
+    textColor,
+    mutedColor,
+    isDark,
+    cardBg,
+    borderColor,
+    destructiveColor,
+  } = useTheme();
 
   // Use a muted background for the modal
   const modalBg = isDark ? "#0a0a0a" : "#fafafa";
 
   const handleClearData = () => {
     Alert.alert(
-      "Clear All Data",
-      "Are you sure you want to permanently delete all notes? This action is irreversible and cannot be undone. All your notes will be lost forever.",
+      "データをクリア",
+      "本当に被害者を完全に削除しますか？この操作は元に戻すことができません。被害者は永遠に失われます。",
       [
         {
-          text: "Cancel",
+          text: "キャンセル",
           style: "cancel",
         },
         {
-          text: "Clear All Data",
+          text: "データをクリア",
           style: "destructive",
           onPress: onClearData,
         },
@@ -56,7 +63,7 @@ export const SettingsModal = ({
         <X size={24} strokeWidth={2.5} />
       </IconButton>
       <Text className="text-lg font-semibold" style={{ color: textColor }}>
-        Settings
+        設定
       </Text>
       <View className="w-11" />
     </View>
@@ -105,14 +112,14 @@ export const SettingsModal = ({
               borderColor: borderColor,
             }}
           >
-            <Text className="text-base font-semibold" style={{ color: textColor }}>
-              Import Notes
-            </Text>
             <Text
-              className="text-sm mt-1"
-              style={{ color: mutedColor }}
+              className="text-base font-semibold"
+              style={{ color: textColor }}
             >
-              Import notes from JSON file
+              被害者をインポート
+            </Text>
+            <Text className="text-sm mt-1" style={{ color: mutedColor }}>
+              被害者をJSONファイルからインポート
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -123,32 +130,35 @@ export const SettingsModal = ({
               borderColor: borderColor,
             }}
           >
-            <Text className="text-base font-semibold" style={{ color: textColor }}>
-              Export Notes
-            </Text>
             <Text
-              className="text-sm mt-1"
-              style={{ color: mutedColor }}
+              className="text-base font-semibold"
+              style={{ color: textColor }}
             >
-              Export all notes as JSON file
+              被害者をエクスポート
+            </Text>
+            <Text className="text-sm mt-1" style={{ color: mutedColor }}>
+              被害者をJSONファイルとしてエクスポート
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleClearData}
             className="p-4 rounded-xl border mb-3"
             style={{
-              backgroundColor: cardBg,
-              borderColor: borderColor,
+              backgroundColor: destructiveColor,
+              borderColor: destructiveColor,
             }}
           >
-            <Text className="text-base font-semibold" style={{ color: textColor }}>
-              Clear All Data
+            <Text
+              className="text-base font-semibold"
+              style={{ color: "#ffffff" }}
+            >
+              データをクリア
             </Text>
             <Text
               className="text-sm mt-1"
-              style={{ color: mutedColor }}
+              style={{ color: "rgba(255, 255, 255, 0.8)" }}
             >
-              Delete all notes permanently
+              アプリをリセットして被害者を完全に削除
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -156,4 +166,3 @@ export const SettingsModal = ({
     </Modal>
   );
 };
-

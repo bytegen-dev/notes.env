@@ -1,12 +1,15 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { useEffect, useState } from "react";
+import { Plus } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { AnimatedSection } from "../components/AnimatedSection";
@@ -16,6 +19,7 @@ import { NoteCard } from "../components/NoteCard";
 import { NoteEditor } from "../components/NoteEditor";
 import { SectionHeader } from "../components/SectionHeader";
 import { SettingsModal } from "../components/SettingsModal";
+import { SplashScreen } from "../components/SplashScreen";
 import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
 import { Note, storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
@@ -30,12 +34,38 @@ export default function Index() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const { bgColor, cardBg, borderColor } = useTheme();
+  const { bgColor, cardBg, borderColor, accentColor } = useTheme();
 
   useEffect(() => {
-    loadNotes();
+    checkSetup();
   }, []);
+
+  useEffect(() => {
+    if (!showSplash) {
+      loadNotes();
+      // Animate in the main content
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showSplash]);
+
+  const checkSetup = async () => {
+    const hasSetup = await storage.hasSetup();
+    setShowSplash(!hasSetup);
+    setIsCheckingSetup(false);
+    // If already set up, show content immediately
+    if (hasSetup) {
+      fadeAnim.setValue(1);
+      loadNotes();
+    }
+  };
 
   useEffect(() => {
     updateSections();
@@ -282,9 +312,25 @@ export default function Index() {
 
   const clearAllData = async () => {
     await storage.clearAllNotes();
+    await storage.setHasSetup(false);
     await loadNotes();
     setIsSettingsOpen(false);
+    setShowSplash(true);
   };
+
+  const handleGetStarted = async () => {
+    await storage.setHasSetup(true);
+    setShowSplash(false);
+  };
+
+  // Show splash screen while checking setup or if setup not completed
+  if (isCheckingSetup || showSplash) {
+    return (
+      <View className="flex-1" style={{ backgroundColor: bgColor }}>
+        <SplashScreen onGetStarted={handleGetStarted} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -292,7 +338,12 @@ export default function Index() {
       style={{ backgroundColor: bgColor }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View className="flex-1">
+      <Animated.View
+        className="flex-1"
+        style={{
+          opacity: fadeAnim,
+        }}
+      >
         <Header
           onAddPress={() => openEditor()}
           onSettingsPress={() => setIsSettingsOpen(true)}
@@ -423,7 +474,30 @@ export default function Index() {
             className="flex-1"
           />
         )}
-      </View>
+      </Animated.View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        onPress={() => openEditor()}
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center"
+        style={{
+          backgroundColor: accentColor,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+      >
+        <Plus
+          size={24}
+          color={accentColor === "#ffffff" ? "#000000" : "#ffffff"}
+          strokeWidth={2.5}
+        />
+      </TouchableOpacity>
 
       <NoteEditor
         visible={isEditorOpen}

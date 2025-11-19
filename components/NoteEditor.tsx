@@ -53,7 +53,7 @@ export const NoteEditor = ({
   const canSave = hasTitle && hasChanges;
 
   // Determine header text
-  const headerText = isNewNote ? "New note" : "Edit note";
+  const headerText = isNewNote ? "新しいノート" : "ノートを編集";
 
   const headerContent = (
     <View className="flex-row justify-between items-center">
@@ -109,21 +109,21 @@ export const NoteEditor = ({
           contentContainerStyle={{ paddingTop: 70 }}
         >
           <TextInput
-            placeholder="Title"
+            placeholder="名前"
             placeholderTextColor={mutedColor}
             value={title}
             onChangeText={onTitleChange}
-            className="text-2xl font-semibold mb-4 p-0"
+            className="text-2xl font-mono font-bold tracking-tighter mb-4 p-0"
             style={{ color: textColor }}
             autoFocus
           />
           <TextInput
-            placeholder="Start writing..."
+            placeholder="被害者の情報を入力してください..."
             placeholderTextColor={mutedColor}
             value={content}
             onChangeText={onContentChange}
             multiline
-            className="text-base min-h-[200px] p-0"
+            className="text-base font-mono min-h-[200px] p-0"
             style={{ color: textColor }}
             textAlignVertical="top"
           />

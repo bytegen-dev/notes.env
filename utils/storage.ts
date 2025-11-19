@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NOTES_KEY = '@notes_app_notes';
+const HAS_SETUP_KEY = '@notes_app_has_setup';
 
 export interface Note {
   id: string;
@@ -84,6 +85,24 @@ export const storage = {
       await AsyncStorage.removeItem(NOTES_KEY);
     } catch (error) {
       console.error('Error clearing notes:', error);
+    }
+  },
+
+  async hasSetup(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(HAS_SETUP_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Error checking setup status:', error);
+      return false;
+    }
+  },
+
+  async setHasSetup(hasSetup: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(HAS_SETUP_KEY, hasSetup ? 'true' : 'false');
+    } catch (error) {
+      console.error('Error setting setup status:', error);
     }
   },
 };
