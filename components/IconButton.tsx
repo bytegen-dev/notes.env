@@ -15,7 +15,7 @@ export const IconButton = ({
   variant = "filled",
   style,
 }: IconButtonProps) => {
-  const { accentColor, mutedColor } = useTheme();
+  const { accentColor, mutedColor, cardBg, borderColor } = useTheme();
   const isOutline = variant === "outline";
   const isDisabled = !onPress;
 
@@ -40,13 +40,12 @@ export const IconButton = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
-      className="w-11 h-11 rounded-full justify-center items-center"
+      className="w-10 h-10 rounded-full justify-center items-center border"
       style={[
         isOutline
           ? {
-              backgroundColor: "transparent",
-              borderWidth: 1,
-              borderColor: accentColor,
+              backgroundColor: cardBg,
+              borderColor: borderColor,
             }
           : {
               backgroundColor: accentColor,
@@ -60,4 +59,3 @@ export const IconButton = ({
     </TouchableOpacity>
   );
 };
-

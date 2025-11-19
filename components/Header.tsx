@@ -1,17 +1,26 @@
 import { BlurView } from "expo-blur";
 import { Plus, Search } from "lucide-react-native";
-import { Platform, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
 
 interface HeaderProps {
   onAddPress: () => void;
+  onSidebarPress: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
 
 export const Header = ({
   onAddPress,
+  onSidebarPress,
   searchQuery,
   onSearchChange,
 }: HeaderProps) => {
@@ -19,32 +28,46 @@ export const Header = ({
 
   const blurContent = (
     <View className="gap-3">
-      <Text
-        className="text-3xl font-bold text-center"
-        style={{ color: textColor }}
-      >
-        cryptonotes
-      </Text>
-      <View className="flex-row items-center gap-2">
-        <View
-          className="flex-1 flex-row items-center px-3 py-2 rounded-full border bg-transparent"
-          style={{
-            borderColor: borderColor,
-          }}
+      <View className="flex-row items-center justify-between">
+        <TouchableOpacity
+          className="flex-row items-center gap-2"
+          onPress={onSidebarPress}
         >
-          <Search size={16} color={mutedColor} />
-          <TextInput
-            placeholder="Search notes..."
-            placeholderTextColor={mutedColor}
-            value={searchQuery}
-            onChangeText={onSearchChange}
-            className="flex-1 ml-2 text-base"
-            style={{ color: textColor }}
+          <Image
+            source={require("../assets/images/image.png")}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: borderColor,
+            }}
+            resizeMode="contain"
           />
-        </View>
+          <Text className="text-2xl font-bold" style={{ color: textColor }}>
+            Notes
+          </Text>
+        </TouchableOpacity>
         <IconButton onPress={onAddPress} variant="outline">
           <Plus size={24} strokeWidth={2.5} />
         </IconButton>
+      </View>
+      <View
+        className="flex-row items-center px-3 py-2 rounded-full border"
+        style={{
+          backgroundColor: cardBg,
+          borderColor: borderColor,
+        }}
+      >
+        <Search size={16} color={mutedColor} />
+        <TextInput
+          placeholder="Search notes..."
+          placeholderTextColor={mutedColor}
+          value={searchQuery}
+          onChangeText={onSearchChange}
+          className="flex-1 ml-2 text-base"
+          style={{ color: textColor }}
+        />
       </View>
     </View>
   );

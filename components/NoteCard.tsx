@@ -1,76 +1,84 @@
-import { Pin, PinOff, Trash2 } from "lucide-react-native";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { Note } from "../utils/storage";
-import { formatDate } from "../utils/formatDate";
 import { useTheme } from "../utils/useTheme";
 
 interface NoteCardProps {
   note: Note;
   onPress: (note: Note) => void;
-  onPin: (id: string) => void;
-  onDelete: (id: string) => void;
+  onPin?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  isLast?: boolean;
 }
 
-export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
-  const { cardBg, textColor, borderColor, accentColor, mutedColor } = useTheme();
+export const NoteCard = ({
+  note,
+  onPress,
+  onPin,
+  onDelete,
+  isLast = false,
+}: NoteCardProps) => {
+  const { cardBg, textColor, mutedColor, borderColor } = useTheme();
+
+  const handleLongPress = () => {
+    if (!onPin && !onDelete) return;
+
+    Alert.alert(note.title || "Untitled", undefined, [
+      ...(onPin
+        ? [
+            {
+              text: note.pinned ? "Unpin" : "Pin",
+              onPress: () => onPin(note.id),
+            },
+          ]
+        : []),
+      ...(onDelete
+        ? [
+            {
+              text: "Delete",
+              style: "destructive" as const,
+              onPress: () => onDelete(note.id),
+            },
+          ]
+        : []),
+      {
+        text: "Cancel",
+        style: "cancel" as const,
+      },
+    ]);
+  };
 
   return (
     <View
-      className="rounded-xl p-4 mb-3 border"
       style={{
-        backgroundColor: cardBg,
-        borderColor,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: borderColor,
       }}
     >
-      <View className="flex-row justify-between items-start mb-2">
-        <View className="flex-row items-center flex-1">
-          <TouchableOpacity
-            onPress={() => onPin(note.id)}
-            className="p-1 mr-2"
-          >
-            {note.pinned ?? false ? (
-              <Pin size={18} color={accentColor} fill={accentColor} />
-            ) : (
-              <PinOff size={18} color={mutedColor} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onPress(note)} className="flex-1">
-            <Text
-              className="text-lg font-semibold"
-              style={{ color: textColor }}
-              numberOfLines={1}
-            >
-              {note.title || "Untitled"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          onPress={() => onDelete(note.id)}
-          className="p-1"
+      <TouchableOpacity
+        onPress={() => onPress(note)}
+        onLongPress={handleLongPress}
+        className="p-4"
+        style={{
+          backgroundColor: cardBg,
+        }}
+      >
+        <Text
+          className="text-base font-semibold mb-1"
+          style={{ color: textColor }}
+          numberOfLines={1}
         >
-          <Trash2 size={18} color="#ef4444" />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity onPress={() => onPress(note)}>
+          {note.title || "Untitled"}
+        </Text>
         {note.content ? (
           <Text
-            className="text-sm mb-2"
+            className="text-sm"
             style={{ color: mutedColor }}
-            numberOfLines={3}
+            numberOfLines={1}
           >
             {note.content}
           </Text>
         ) : null}
-
-        <Text
-          className="text-xs"
-          style={{ color: mutedColor }}
-        >
-          {formatDate(note.updatedAt)}
-        </Text>
       </TouchableOpacity>
     </View>
   );
 };
-

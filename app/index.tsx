@@ -6,60 +6,59 @@ import {
   Platform,
   View,
 } from "react-native";
+import { AnimatedSection } from "../components/AnimatedSection";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
 import { NoteCard } from "../components/NoteCard";
 import { NoteEditor } from "../components/NoteEditor";
+import { SectionHeader } from "../components/SectionHeader";
+import { Sidebar } from "../components/Sidebar";
+import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
 import { Note, storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 
 export default function Index() {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [sections, setSections] = useState<NoteSection[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const { bgColor } = useTheme();
+  const { bgColor, cardBg, borderColor } = useTheme();
 
   useEffect(() => {
     loadNotes();
   }, []);
 
   useEffect(() => {
-    filterNotes();
-  }, [notes, searchQuery]);
+    updateSections();
+  }, [notes, searchQuery, isPinnedCollapsed]);
 
   const loadNotes = async () => {
     const loadedNotes = await storage.getNotes();
-    setNotes(
-      loadedNotes.sort((a, b) => {
-        // Pinned notes first (treat undefined as false)
-        const aPinned = a.pinned ?? false;
-        const bPinned = b.pinned ?? false;
-        if (aPinned && !bPinned) return -1;
-        if (!aPinned && bPinned) return 1;
-        // Then by updatedAt
-        return b.updatedAt - a.updatedAt;
-      })
-    );
+    setNotes(loadedNotes);
   };
 
-  const filterNotes = () => {
-    if (!searchQuery.trim()) {
-      setFilteredNotes(notes);
-      return;
+  const updateSections = () => {
+    let notesToGroup = notes;
+
+    // Filter notes if there's a search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      notesToGroup = notes.filter(
+        (note) =>
+          note.title.toLowerCase().includes(query) ||
+          note.content.toLowerCase().includes(query)
+      );
     }
 
-    const query = searchQuery.toLowerCase().trim();
-    const filtered = notes.filter(
-      (note) =>
-        note.title.toLowerCase().includes(query) ||
-        note.content.toLowerCase().includes(query)
-    );
-    setFilteredNotes(filtered);
+    // Group notes by time periods
+    const grouped = groupNotesByTime(notesToGroup);
+    setSections(grouped);
   };
 
   const openEditor = (note?: Note) => {
@@ -96,6 +95,11 @@ export default function Index() {
     closeEditor();
   };
 
+  const togglePin = async (id: string) => {
+    await storage.togglePin(id);
+    await loadNotes();
+  };
+
   const deleteNote = async (id: string) => {
     Alert.alert(
       "Delete Note",
@@ -117,11 +121,6 @@ export default function Index() {
     );
   };
 
-  const togglePin = async (id: string) => {
-    await storage.togglePin(id);
-    await loadNotes();
-  };
-
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -131,26 +130,126 @@ export default function Index() {
       <View className="flex-1">
         <Header
           onAddPress={() => openEditor()}
+          onSidebarPress={() => setIsSidebarOpen(true)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
 
-        {filteredNotes.length === 0 ? (
+        {sections.length === 0 ? (
           <View className="flex-1 p-4 pt-40 justify-center items-center">
             <EmptyState />
           </View>
         ) : (
           <FlatList
-            data={filteredNotes}
-            renderItem={({ item }) => (
-              <NoteCard
-                note={item}
-                onPress={openEditor}
-                onPin={togglePin}
-                onDelete={deleteNote}
-              />
-            )}
-            keyExtractor={(item) => item.id}
+            data={sections.flatMap((section) => [
+              { type: "header", section },
+              ...section.data.map((note) => ({ type: "item", note, section })),
+            ])}
+            renderItem={({ item }) => {
+              if (item.type === "header") {
+                return (
+                  <SectionHeader
+                    title={item.section.title}
+                    isCollapsed={
+                      item.section.title === "Pinned" && isPinnedCollapsed
+                    }
+                    onToggle={
+                      item.section.title === "Pinned"
+                        ? () => setIsPinnedCollapsed(!isPinnedCollapsed)
+                        : undefined
+                    }
+                  />
+                );
+              }
+
+              // Type guard for item type
+              if (item.type !== "item") return null;
+
+              // Type assertion after guard
+              const itemNote = item as {
+                type: "item";
+                note: Note;
+                section: NoteSection;
+              };
+
+              // Render items
+              const section = itemNote.section;
+              const sectionData = section.data;
+              const isLastInSection =
+                sectionData[sectionData.length - 1]?.id === itemNote.note.id;
+
+              if (section.title === "Pinned") {
+                // For Pinned section, wrap all items in AnimatedSection with container
+                const pinnedSection = sections.find(
+                  (s) => s.title === "Pinned"
+                );
+                const isFirstPinnedItem =
+                  pinnedSection?.data[0]?.id === itemNote.note.id;
+
+                if (isFirstPinnedItem) {
+                  return (
+                    <AnimatedSection isCollapsed={isPinnedCollapsed}>
+                      <View
+                        className="rounded-xl border overflow-hidden mb-3"
+                        style={{
+                          backgroundColor: cardBg,
+                          borderColor,
+                        }}
+                      >
+                        {pinnedSection?.data.map((note, index) => (
+                          <NoteCard
+                            key={note.id}
+                            note={note}
+                            onPress={openEditor}
+                            onPin={togglePin}
+                            onDelete={deleteNote}
+                            isLast={index === pinnedSection.data.length - 1}
+                          />
+                        ))}
+                      </View>
+                    </AnimatedSection>
+                  );
+                }
+                return null; // Other items are already rendered in the wrapper
+              }
+
+              // For other sections, check if it's the first item to wrap in container
+              const isFirstInSection = sectionData[0]?.id === itemNote.note.id;
+              if (isFirstInSection) {
+                return (
+                  <View
+                    className="rounded-xl border overflow-hidden mb-3"
+                    style={{
+                      backgroundColor: cardBg,
+                      borderColor,
+                    }}
+                  >
+                    {sectionData.map((note, index) => (
+                      <NoteCard
+                        key={note.id}
+                        note={note}
+                        onPress={openEditor}
+                        onPin={togglePin}
+                        onDelete={deleteNote}
+                        isLast={index === sectionData.length - 1}
+                      />
+                    ))}
+                  </View>
+                );
+              }
+              return null; // Other items are already rendered in the wrapper
+            }}
+            keyExtractor={(item, index) => {
+              if (item.type === "header") {
+                return `header-${item.section.title}`;
+              }
+              if (item.type === "item") {
+                return (
+                  item as { type: "item"; note: Note; section: NoteSection }
+                ).note.id;
+              }
+              return `item-${index}`;
+            }}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               padding: 16,
@@ -170,6 +269,11 @@ export default function Index() {
         onContentChange={setContent}
         onClose={closeEditor}
         onSave={saveNote}
+      />
+
+      <Sidebar
+        visible={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
     </KeyboardAvoidingView>
   );
