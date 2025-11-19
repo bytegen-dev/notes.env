@@ -1,17 +1,23 @@
 import { useState } from "react";
 import {
+  Alert,
   ImageBackground,
+  Modal,
+  Pressable,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useLanguage } from "../utils/i18n/LanguageContext";
+import { storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
+import { Dialog } from "./Dialog";
 import { PasscodeInput } from "./PasscodeInput";
 
 interface LockScreenProps {
   onUnlock: () => void;
+  onReset?: () => void;
 }
 
 const splashImages = [
@@ -20,11 +26,12 @@ const splashImages = [
   require("../assets/images/splash-3.gif"),
 ];
 
-export const LockScreen = ({ onUnlock }: LockScreenProps) => {
+export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
   const { t } = useLanguage();
   const theme = useTheme();
   const [splashIndex, setSplashIndex] = useState(0);
   const [passcode, setPasscode] = useState("");
+  const [showForgotPasscodeModal, setShowForgotPasscodeModal] = useState(false);
 
   const textColor = "#ffffff";
   const bgColor = "#000000";
@@ -34,14 +41,25 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
     setSplashIndex((prev) => (prev + 1) % splashImages.length);
   };
 
-  const handleDigitPress = (digit: string) => {
+  const handleDigitPress = async (digit: string) => {
     if (passcode.length < 4) {
       const newPasscode = passcode + digit;
       setPasscode(newPasscode);
 
-      // If 4 digits entered, unlock automatically
+      // If 4 digits entered, validate and unlock
       if (newPasscode.length === 4) {
-        handleUnlock(newPasscode);
+        // Small delay to show the 4th digit
+        setTimeout(async () => {
+          const isValid = await validatePasscode(newPasscode);
+          if (isValid) {
+            setPasscode("");
+            onUnlock();
+          } else {
+            // Invalid passcode, show error and reset
+            Alert.alert(t.lockScreen.locked, t.lockScreen.incorrectPasscode);
+            setPasscode("");
+          }
+        }, 100);
       }
     }
   };
@@ -52,13 +70,45 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
     }
   };
 
-  const handleUnlock = (code?: string) => {
-    // For now, any 4 digit passcode unlocks
-    const codeToCheck = code || passcode;
-    if (codeToCheck.length === 4) {
-      setPasscode("");
-      onUnlock();
+  const validatePasscode = async (code: string): Promise<boolean> => {
+    const codeToCheck = code.trim();
+    if (codeToCheck.length !== 4) {
+      return false;
     }
+
+    const storedPasscode = await storage.getPasscode();
+    if (!storedPasscode) {
+      // No passcode stored, something went wrong
+      Alert.alert(
+        t.lockScreen.locked,
+        "No passcode found. Please set up a passcode."
+      );
+      return false;
+    }
+
+    const storedPasscodeTrimmed = storedPasscode.trim();
+    return storedPasscodeTrimmed === codeToCheck;
+  };
+
+  const handleForgotPasscode = () => {
+    setShowForgotPasscodeModal(true);
+  };
+
+  const handleResetApp = () => {
+    setShowForgotPasscodeModal(false);
+    Alert.alert(t.lockScreen.resetApp, t.lockScreen.resetConfirmMessage, [
+      {
+        text: t.alerts.cancel,
+        style: "cancel",
+      },
+      {
+        text: t.lockScreen.resetApp,
+        style: "destructive",
+        onPress: () => {
+          onReset?.();
+        },
+      },
+    ]);
   };
 
   return (
@@ -120,9 +170,36 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
               onDigitPress={handleDigitPress}
               onDelete={handleDelete}
             />
+            <Pressable onPress={handleForgotPasscode} className="mt-4">
+              <Text
+                className="text-sm font-mono text-center"
+                style={{ color: textColor, opacity: 0.7 }}
+              >
+                {t.lockScreen.forgotPasscode}
+              </Text>
+            </Pressable>
           </View>
         </ImageBackground>
       </TouchableOpacity>
+
+      {/* Forgot Passcode Modal */}
+      <Modal
+        visible={showForgotPasscodeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowForgotPasscodeModal(false)}
+      >
+        <Dialog
+          visible={showForgotPasscodeModal}
+          title={t.lockScreen.forgotPasscodeTitle}
+          message={t.lockScreen.forgotPasscodeMessage}
+          onClose={() => setShowForgotPasscodeModal(false)}
+          onConfirm={handleResetApp}
+          confirmText={t.lockScreen.resetApp}
+          cancelText={t.alerts.cancel}
+          confirmStyle="destructive"
+        />
+      </Modal>
     </View>
   );
 };
