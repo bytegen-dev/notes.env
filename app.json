@@ -13,7 +13,7 @@
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to unlock your notes securely"
       },
-      "bundleIdentifier": "com.anonymous.notesenv"
+      "bundleIdentifier": "com.bytgen.notesenv"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.notesenv"
+      "package": "com.bytgen.notesenv"
     },
     "web": {
       "output": "static",
