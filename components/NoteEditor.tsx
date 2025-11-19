@@ -67,7 +67,7 @@ export const NoteEditor = ({
         onPress={canSave ? onSave : undefined}
         variant="outline"
         style={{
-          opacity: canSave ? 1 : 0.4,
+          opacity: canSave ? 1 : 0.5,
         }}
       >
         <Check size={24} strokeWidth={2.5} />
