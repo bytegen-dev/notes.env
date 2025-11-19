@@ -62,7 +62,8 @@ export default function Index() {
   };
 
   const saveNote = async () => {
-    if (!title.trim() && !content.trim()) return;
+    // Title is required
+    if (!title.trim()) return;
 
     if (editingNote) {
       await storage.updateNote(editingNote.id, { title, content });
@@ -144,6 +145,7 @@ export default function Index() {
 
       <NoteEditor
         visible={isEditorOpen}
+        note={editingNote}
         title={title}
         content={content}
         onTitleChange={setTitle}

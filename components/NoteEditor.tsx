@@ -1,8 +1,20 @@
-import { Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { BlurView } from "expo-blur";
+import { Check, X } from "lucide-react-native";
+import {
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { Note } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
+import { IconButton } from "./IconButton";
 
 interface NoteEditorProps {
   visible: boolean;
+  note: Note | null;
   title: string;
   content: string;
   onTitleChange: (title: string) => void;
@@ -13,6 +25,7 @@ interface NoteEditorProps {
 
 export const NoteEditor = ({
   visible,
+  note,
   title,
   content,
   onTitleChange,
@@ -20,7 +33,47 @@ export const NoteEditor = ({
   onClose,
   onSave,
 }: NoteEditorProps) => {
-  const { bgColor, textColor, borderColor, accentColor, mutedColor } = useTheme();
+  const { textColor, mutedColor, isDark, accentColor } = useTheme();
+
+  // Use a muted background for the modal
+  const modalBg = isDark ? "#0a0a0a" : "#fafafa";
+
+  // Check if it's a new note
+  const isNewNote = !note;
+
+  // Check if there are changes
+  const hasChanges = isNewNote
+    ? title.trim().length > 0 || content.trim().length > 0
+    : title !== (note?.title || "") || content !== (note?.content || "");
+
+  // Check if title is required (for new notes, title is required; for editing, title must exist if there are changes)
+  const hasTitle = title.trim().length > 0;
+
+  // Disable save if no title or no changes
+  const canSave = hasTitle && hasChanges;
+
+  // Determine header text
+  const headerText = isNewNote ? "New note" : "Edit note";
+
+  const headerContent = (
+    <View className="flex-row justify-between items-center">
+      <IconButton onPress={onClose} variant="outline">
+        <X size={24} strokeWidth={2.5} />
+      </IconButton>
+      <Text className="text-lg font-semibold" style={{ color: textColor }}>
+        {headerText}
+      </Text>
+      <IconButton
+        onPress={canSave ? onSave : undefined}
+        variant="outline"
+        style={{
+          opacity: canSave ? 1 : 0.5,
+        }}
+      >
+        <Check size={24} strokeWidth={2.5} />
+      </IconButton>
+    </View>
+  );
 
   return (
     <Modal
@@ -29,45 +82,41 @@ export const NoteEditor = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, backgroundColor: bgColor, paddingTop: 60 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: borderColor,
-          }}
-        >
-          <TouchableOpacity onPress={onClose}>
-            <Text style={{ fontSize: 16, color: accentColor }}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: "600", color: textColor }}>
-            Note
-          </Text>
-          <TouchableOpacity onPress={onSave}>
-            <Text
-              style={{ fontSize: 16, fontWeight: "600", color: accentColor }}
-            >
-              Save
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <View style={{ flex: 1, backgroundColor: modalBg }}>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={20}
+            tint={isDark ? "dark" : "light"}
+            className="absolute top-0 left-0 right-0 pt-4 pb-4 px-4 z-[1000] border-b"
+            style={{ borderBottomColor: "rgba(128, 128, 128, 0.2)" }}
+          >
+            {headerContent}
+          </BlurView>
+        ) : (
+          <View
+            className="absolute top-0 left-0 right-0 pt-4 pb-4 px-4 z-[1000] border-b"
+            style={{
+              backgroundColor: isDark
+                ? "rgba(0, 0, 0, 0.5)"
+                : "rgba(255, 255, 255, 0.5)",
+              borderBottomColor: "rgba(128, 128, 128, 0.2)",
+            }}
+          >
+            {headerContent}
+          </View>
+        )}
 
-        <ScrollView style={{ flex: 1, padding: 16 }}>
+        <ScrollView
+          className="flex-1 p-4"
+          contentContainerStyle={{ paddingTop: 70 }}
+        >
           <TextInput
             placeholder="Title"
             placeholderTextColor={mutedColor}
             value={title}
             onChangeText={onTitleChange}
-            style={{
-              fontSize: 24,
-              fontWeight: "600",
-              color: textColor,
-              marginBottom: 16,
-              padding: 0,
-            }}
+            className="text-2xl font-semibold mb-4 p-0"
+            style={{ color: textColor }}
             autoFocus
           />
           <TextInput
@@ -76,12 +125,8 @@ export const NoteEditor = ({
             value={content}
             onChangeText={onContentChange}
             multiline
-            style={{
-              fontSize: 16,
-              color: textColor,
-              minHeight: 200,
-              padding: 0,
-            }}
+            className="text-base min-h-[200px] p-0"
+            style={{ color: textColor }}
             textAlignVertical="top"
           />
         </ScrollView>
@@ -89,4 +134,3 @@ export const NoteEditor = ({
     </Modal>
   );
 };
-
