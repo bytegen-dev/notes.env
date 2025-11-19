@@ -134,7 +134,7 @@ export const SettingsModal = ({
   const headerContent = (
     <View className="flex-row justify-between items-center">
       <IconButton onPress={onClose} variant="outline">
-        <X size={24} strokeWidth={2.5} />
+        <X size={18} />
       </IconButton>
       <Text className="text-lg font-semibold" style={{ color: textColor }}>
         {t.settings.title}

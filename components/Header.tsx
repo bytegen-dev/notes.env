@@ -58,7 +58,7 @@ export const Header = ({
           </Text>
         </TouchableOpacity>
         <IconButton onPress={onLockPress} variant="outline">
-          {isLocked ? <Lock size={20} /> : <LockOpen size={20} />}
+          {isLocked ? <Lock size={18} /> : <LockOpen size={18} />}
         </IconButton>
       </View>
       <View
@@ -68,13 +68,13 @@ export const Header = ({
           borderColor: borderColor,
         }}
       >
-        <Search size={16} color={mutedColor} />
+        <Search size={14} color={mutedColor} />
         <TextInput
           placeholder={t.header.searchPlaceholder}
           placeholderTextColor={mutedColor}
           value={searchQuery}
           onChangeText={onSearchChange}
-          className="flex-1 ml-2 text-base"
+          className="flex-1 font-mono ml-2 text-base tracking-tighter"
           style={{ color: textColor }}
         />
       </View>

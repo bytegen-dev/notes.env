@@ -36,7 +36,7 @@ export const translations = {
       newNote: "New Note",
       editNote: "Edit Note",
       titlePlaceholder: "Title",
-      contentPlaceholder: "Enter note content...",
+      contentPlaceholder: "Content",
     },
     // Settings
     settings: {

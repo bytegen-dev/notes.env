@@ -1,5 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
+import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Plus } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -47,6 +48,7 @@ export default function Index() {
 
   const { t, language } = useLanguage();
   const { bgColor, cardBg, borderColor, accentColor } = useTheme();
+  const router = useRouter();
 
   useEffect(() => {
     checkSetup();
@@ -142,6 +144,10 @@ export default function Index() {
     // Group notes by time periods
     const grouped = groupNotesByTime(notesToGroup, t);
     setSections(grouped);
+  };
+
+  const handleNotePress = (note: Note) => {
+    router.push(`/note/${note.id}`);
   };
 
   const openEditor = (note?: Note) => {
@@ -504,7 +510,7 @@ export default function Index() {
                           <NoteCard
                             key={note.id}
                             note={note}
-                            onPress={openEditor}
+                            onPress={handleNotePress}
                             onPin={togglePin}
                             onDelete={deleteNote}
                             isLast={index === pinnedSection.data.length - 1}
@@ -532,7 +538,7 @@ export default function Index() {
                       <NoteCard
                         key={note.id}
                         note={note}
-                        onPress={openEditor}
+                        onPress={handleNotePress}
                         onPin={togglePin}
                         onDelete={deleteNote}
                         isLast={index === sectionData.length - 1}

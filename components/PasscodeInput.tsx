@@ -31,7 +31,9 @@ export const PasscodeInput = ({
   biometricEnabled = false,
 }: PasscodeInputProps) => {
   const { t } = useLanguage();
-  const { textColor, isDark, mutedColor } = useTheme();
+  const { isDark } = useTheme();
+  const textColor = "#ffffff";
+  const mutedColor = "#666666";
 
   // Calculate button size based on screen width
   // Account for padding (px-12 = 48px on each side) and gaps (3 gaps * gap size)

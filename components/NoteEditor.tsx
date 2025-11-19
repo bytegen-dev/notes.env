@@ -60,7 +60,7 @@ export const NoteEditor = ({
   const headerContent = (
     <View className="flex-row justify-between items-center">
       <IconButton onPress={onClose} variant="outline">
-        <X size={24} strokeWidth={2.5} />
+        <X size={18} />
       </IconButton>
       <Text
         className="text-lg font-mono font-semibold"
@@ -73,7 +73,7 @@ export const NoteEditor = ({
         variant="outline"
         style={{ opacity: canSave ? 1 : 0.5 }}
       >
-        <Check size={24} strokeWidth={2.5} />
+        <Check size={18} />
       </IconButton>
     </View>
   );
@@ -118,7 +118,7 @@ export const NoteEditor = ({
             placeholderTextColor={mutedColor}
             value={title}
             onChangeText={onTitleChange}
-            className="text-xl font-mono font-bold tracking-tighter mb-4 p-0"
+            className="text-xl font-bold tracking-tighter mb-4 p-0"
             style={{ color: textColor }}
             autoFocus
           />
@@ -128,7 +128,7 @@ export const NoteEditor = ({
             value={content}
             onChangeText={onContentChange}
             multiline
-            className="text-base font-mono min-h-[200px] p-0"
+            className="text-base min-h-[200px] p-0"
             style={{ color: textColor }}
             textAlignVertical="top"
           />

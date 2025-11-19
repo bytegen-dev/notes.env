@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { storage } from "../utils/storage";
-import { useTheme } from "../utils/useTheme";
 import { Dialog } from "./Dialog";
 import { PasscodeInput } from "./PasscodeInput";
 
@@ -30,7 +29,6 @@ const splashImages = [
 
 export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
   const { t } = useLanguage();
-  const theme = useTheme();
   const [splashIndex, setSplashIndex] = useState(0);
   const [passcode, setPasscode] = useState("");
   const [showForgotPasscodeModal, setShowForgotPasscodeModal] = useState(false);
@@ -38,7 +36,6 @@ export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
 
   const textColor = "#ffffff";
   const bgColor = "#000000";
-  const isDark = theme.isDark;
 
   useEffect(() => {
     checkBiometricStatus();
