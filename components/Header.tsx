@@ -16,7 +16,7 @@ export const Header = ({ onAddPress }: HeaderProps) => {
       <Text className="text-3xl font-bold" style={{ color: textColor }}>
         Notes
       </Text>
-      <IconButton onPress={onAddPress}>
+      <IconButton onPress={onAddPress} variant="outline">
         <Plus size={24} strokeWidth={2.5} />
       </IconButton>
     </View>

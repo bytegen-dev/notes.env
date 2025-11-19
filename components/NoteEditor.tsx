@@ -8,11 +8,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Note } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
 
 interface NoteEditorProps {
   visible: boolean;
+  note: Note | null;
   title: string;
   content: string;
   onTitleChange: (title: string) => void;
@@ -23,6 +25,7 @@ interface NoteEditorProps {
 
 export const NoteEditor = ({
   visible,
+  note,
   title,
   content,
   onTitleChange,
@@ -30,20 +33,43 @@ export const NoteEditor = ({
   onClose,
   onSave,
 }: NoteEditorProps) => {
-  const { textColor, mutedColor, isDark } = useTheme();
+  const { textColor, mutedColor, isDark, accentColor } = useTheme();
 
   // Use a muted background for the modal
   const modalBg = isDark ? "#0a0a0a" : "#fafafa";
 
+  // Check if it's a new note
+  const isNewNote = !note;
+
+  // Check if there are changes
+  const hasChanges = isNewNote
+    ? title.trim().length > 0 || content.trim().length > 0
+    : title !== (note?.title || "") || content !== (note?.content || "");
+
+  // Check if title is required (for new notes, title is required; for editing, title must exist if there are changes)
+  const hasTitle = title.trim().length > 0;
+
+  // Disable save if no title or no changes
+  const canSave = hasTitle && hasChanges;
+
+  // Determine header text
+  const headerText = isNewNote ? "New note" : "Edit note";
+
   const headerContent = (
     <View className="flex-row justify-between items-center">
-      <IconButton onPress={onClose}>
+      <IconButton onPress={onClose} variant="outline">
         <X size={24} strokeWidth={2.5} />
       </IconButton>
       <Text className="text-lg font-semibold" style={{ color: textColor }}>
-        Note
+        {headerText}
       </Text>
-      <IconButton onPress={onSave}>
+      <IconButton
+        onPress={canSave ? onSave : undefined}
+        variant="outline"
+        style={{
+          opacity: canSave ? 1 : 0.4,
+        }}
+      >
         <Check size={24} strokeWidth={2.5} />
       </IconButton>
     </View>
