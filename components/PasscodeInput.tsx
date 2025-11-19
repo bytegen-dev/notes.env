@@ -16,6 +16,8 @@ interface PasscodeInputProps {
   onDigitPress: (digit: string) => void;
   onDelete: () => void;
   disableBiometric?: boolean;
+  onBiometricPress?: () => void;
+  biometricEnabled?: boolean;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -25,6 +27,8 @@ export const PasscodeInput = ({
   onDigitPress,
   onDelete,
   disableBiometric = false,
+  onBiometricPress,
+  biometricEnabled = false,
 }: PasscodeInputProps) => {
   const { t } = useLanguage();
   const { textColor, isDark, mutedColor } = useTheme();
@@ -58,24 +62,27 @@ export const PasscodeInput = ({
           ? t.lockScreen.faceIdNotEnabled
           : t.lockScreen.fingerprintNotEnabled;
 
+      const isDisabled = disableBiometric || !biometricEnabled;
+
       return (
         <TouchableOpacity
           key={`${row}-${col}`}
           onPress={
-            disableBiometric
+            isDisabled
               ? undefined
-              : () => {
+              : onBiometricPress ||
+                (() => {
                   Alert.alert(alertTitle, alertMessage);
-                }
+                })
           }
-          disabled={disableBiometric}
+          disabled={isDisabled}
           className="rounded-3xl items-center justify-center overflow-hidden border"
           style={{
             width: buttonSize,
             height: buttonSize,
             borderColor: mutedColor,
             borderWidth: 1,
-            opacity: disableBiometric ? 0.3 : 1,
+            opacity: isDisabled ? 0.3 : 1,
           }}
         >
           {Platform.OS === "ios" ? (

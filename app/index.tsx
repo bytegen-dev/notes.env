@@ -75,14 +75,10 @@ export default function Index() {
         // No passcode set, show create passcode screen
         setShowCreatePasscode(true);
       } else {
-        // Has passcode, check lock status
-        const locked = await storage.isLocked();
-        setIsLocked(locked);
+        // Has passcode, lock the app on load
+        await storage.setLocked(true);
+        setIsLocked(true);
         setIsCheckingLock(false);
-        if (!locked) {
-          fadeAnim.setValue(1);
-          loadNotes();
-        }
       }
     } else {
       setIsCheckingLock(false);

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import * as LocalAuthentication from "expo-local-authentication";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ImageBackground,
   Modal,
+  Platform,
   Pressable,
   StatusBar,
   Text,
@@ -32,10 +34,53 @@ export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
   const [splashIndex, setSplashIndex] = useState(0);
   const [passcode, setPasscode] = useState("");
   const [showForgotPasscodeModal, setShowForgotPasscodeModal] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   const textColor = "#ffffff";
   const bgColor = "#000000";
   const isDark = theme.isDark;
+
+  useEffect(() => {
+    checkBiometricStatus();
+  }, []);
+
+  const checkBiometricStatus = async () => {
+    const isEnabled = await storage.isBiometricEnabled();
+    setBiometricEnabled(isEnabled);
+  };
+
+  const handleBiometricPress = async () => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage:
+          Platform.OS === "ios"
+            ? t.lockScreen.faceIdUnlock
+            : t.lockScreen.fingerprintUnlock,
+        cancelLabel: t.alerts.cancel,
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        onUnlock();
+      } else if (result.error === "user_cancel") {
+        // User cancelled, do nothing
+      } else {
+        Alert.alert(
+          t.lockScreen.locked,
+          Platform.OS === "ios"
+            ? t.lockScreen.faceIdNotEnabled
+            : t.lockScreen.fingerprintNotEnabled
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        t.lockScreen.locked,
+        Platform.OS === "ios"
+          ? t.lockScreen.faceIdNotEnabled
+          : t.lockScreen.fingerprintNotEnabled
+      );
+    }
+  };
 
   const handleSplashClick = () => {
     setSplashIndex((prev) => (prev + 1) % splashImages.length);
@@ -169,6 +214,8 @@ export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
               passcode={passcode}
               onDigitPress={handleDigitPress}
               onDelete={handleDelete}
+              onBiometricPress={handleBiometricPress}
+              biometricEnabled={biometricEnabled}
             />
             <Pressable onPress={handleForgotPasscode} className="mt-4">
               <Text

@@ -51,6 +51,10 @@ export const translations = {
       languageDesc: "Change app language",
       english: "English",
       japanese: "Japanese",
+      biometric: "Biometric Authentication",
+      biometricDesc: "Use Face ID or Fingerprint to unlock",
+      biometricNotAvailable:
+        "Biometric authentication is not available on this device",
     },
     // Alerts
     alerts: {
@@ -155,6 +159,9 @@ export const translations = {
       languageDesc: "アプリの言語を変更",
       english: "英語",
       japanese: "日本語",
+      biometric: "生体認証",
+      biometricDesc: "Face IDまたは指紋認証でロック解除",
+      biometricNotAvailable: "このデバイスでは生体認証が利用できません",
     },
     // Alerts
     alerts: {

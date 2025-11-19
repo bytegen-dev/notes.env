@@ -14,4 +14,5 @@ export const resetApp = async (): Promise<void> => {
   await storage.setHasSetup(false);
   await storage.clearPasscode();
   await storage.setLocked(false);
+  await storage.setBiometricEnabled(false);
 };
