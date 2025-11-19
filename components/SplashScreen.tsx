@@ -69,7 +69,10 @@ export const SplashScreen = ({
           source={splashImages[splashIndex]}
           resizeMode="cover"
           className="flex-1"
-          style={{ backgroundColor: bgColor }}
+          style={{
+            backgroundColor: bgColor,
+            ...(Platform.OS === "web" && { backgroundSize: "cover" }),
+          }}
         >
           <View
             className="flex-1 absolute top-0 left-0 right-0 bottom-0"

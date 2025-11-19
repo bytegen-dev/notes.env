@@ -4,6 +4,7 @@ const NOTES_KEY = '@notes_app_notes';
 const HAS_SETUP_KEY = '@notes_app_has_setup';
 const IS_LOCKED_KEY = '@notes_app_is_locked';
 const PASSCODE_KEY = '@notes_app_passcode';
+const BIOMETRIC_ENABLED_KEY = '@notes_app_biometric_enabled';
 
 export interface Note {
   id: string;
@@ -158,6 +159,24 @@ export const storage = {
       await AsyncStorage.removeItem(PASSCODE_KEY);
     } catch (error) {
       console.error('Error clearing passcode:', error);
+    }
+  },
+
+  async isBiometricEnabled(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Error checking biometric status:', error);
+      return false;
+    }
+  },
+
+  async setBiometricEnabled(enabled: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, enabled ? 'true' : 'false');
+    } catch (error) {
+      console.error('Error setting biometric status:', error);
     }
   },
 };
