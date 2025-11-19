@@ -62,7 +62,10 @@ export const NoteEditor = ({
       <IconButton onPress={onClose} variant="outline">
         <X size={24} strokeWidth={2.5} />
       </IconButton>
-      <Text className="text-lg font-semibold" style={{ color: textColor }}>
+      <Text
+        className="text-lg font-mono font-semibold"
+        style={{ color: textColor }}
+      >
         {headerText}
       </Text>
       <IconButton
@@ -115,7 +118,7 @@ export const NoteEditor = ({
             placeholderTextColor={mutedColor}
             value={title}
             onChangeText={onTitleChange}
-            className="text-2xl font-mono font-bold tracking-tighter mb-4 p-0"
+            className="text-xl font-mono font-bold tracking-tighter mb-4 p-0"
             style={{ color: textColor }}
             autoFocus
           />

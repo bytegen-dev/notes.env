@@ -8,10 +8,18 @@ export const translations = {
     lockScreen: {
       locked: "Locked",
       enterPasscode: "Enter 4-digit passcode",
+      incorrectPasscode: "Incorrect passcode. Please try again.",
       faceIdUnlock: "Face ID Unlock",
       fingerprintUnlock: "Fingerprint Unlock",
       faceIdNotEnabled: "Face ID unlock has not yet been enabled",
       fingerprintNotEnabled: "Fingerprint unlock has not yet been enabled",
+    },
+    // Create Passcode Screen
+    createPasscode: {
+      createPasscode: "Create Passcode",
+      enterPasscode: "Enter 4-digit passcode",
+      confirmPasscode: "Confirm passcode",
+      passcodesDoNotMatch: "Passcodes do not match. Please try again.",
     },
     // Header
     header: {
@@ -82,6 +90,10 @@ export const translations = {
       previous7Days: "Previous 7 Days",
       previous30Days: "Previous 30 Days",
     },
+    // Empty State
+    emptyState: {
+      noNotes: "No notes yet.\nTap [+] to create a note.",
+    },
   },
   ja: {
     // Splash Screen
@@ -92,10 +104,19 @@ export const translations = {
     lockScreen: {
       locked: "ロック済み",
       enterPasscode: "4桁のパスコードを入力",
+      incorrectPasscode:
+        "パスコードが正しくありません。もう一度お試しください。",
       faceIdUnlock: "Face ID ロック解除",
       fingerprintUnlock: "指紋認証ロック解除",
       faceIdNotEnabled: "Face ID ロック解除はまだ有効になっていません",
       fingerprintNotEnabled: "指紋認証ロック解除はまだ有効になっていません",
+    },
+    // Create Passcode Screen
+    createPasscode: {
+      createPasscode: "パスコードを作成",
+      enterPasscode: "4桁のパスコードを入力",
+      confirmPasscode: "パスコードを確認",
+      passcodesDoNotMatch: "パスコードが一致しません。もう一度お試しください。",
     },
     // Header
     header: {
@@ -147,7 +168,8 @@ export const translations = {
       error: "エラー",
       invalidFileFormat: "無効なファイル形式です。ノートの配列が必要です。",
       noValidNotes: "ファイルに有効なノートが見つかりませんでした。",
-      importFailed: "ノートのインポートに失敗しました。ファイル形式を確認してください。",
+      importFailed:
+        "ノートのインポートに失敗しました。ファイル形式を確認してください。",
       exportFailed: "ノートのエクスポートに失敗しました",
       sharingNotAvailable: "このデバイスでは共有機能が利用できません",
     },
@@ -166,9 +188,13 @@ export const translations = {
       previous7Days: "過去7日間",
       previous30Days: "過去30日間",
     },
+    // Empty State
+    emptyState: {
+      noNotes:
+        "まだノートはありません。\n「+」をタップしてノートを作成してください。",
+    },
   },
 };
 
 export type Language = "en" | "ja";
 export type TranslationKey = keyof typeof translations.en;
-

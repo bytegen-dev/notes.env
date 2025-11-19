@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { AnimatedSection } from "../components/AnimatedSection";
+import { CreatePasscodeScreen } from "../components/CreatePasscodeScreen";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
 import { LockScreen } from "../components/LockScreen";
@@ -38,6 +39,7 @@ export default function Index() {
   const [content, setContent] = useState("");
   const [showSplash, setShowSplash] = useState(true);
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const [showCreatePasscode, setShowCreatePasscode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [isCheckingLock, setIsCheckingLock] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -65,14 +67,21 @@ export default function Index() {
     const hasSetup = await storage.hasSetup();
     setShowSplash(!hasSetup);
     setIsCheckingSetup(false);
-    // If already set up, check lock status and show content
+    // If already set up, check passcode and lock status
     if (hasSetup) {
-      const locked = await storage.isLocked();
-      setIsLocked(locked);
-      setIsCheckingLock(false);
-      if (!locked) {
-        fadeAnim.setValue(1);
-        loadNotes();
+      const hasPasscode = await storage.hasPasscode();
+      if (!hasPasscode) {
+        // No passcode set, show create passcode screen
+        setShowCreatePasscode(true);
+      } else {
+        // Has passcode, check lock status
+        const locked = await storage.isLocked();
+        setIsLocked(locked);
+        setIsCheckingLock(false);
+        if (!locked) {
+          fadeAnim.setValue(1);
+          loadNotes();
+        }
       }
     } else {
       setIsCheckingLock(false);
@@ -350,6 +359,7 @@ export default function Index() {
   const clearAllData = async () => {
     await storage.clearAllNotes();
     await storage.setHasSetup(false);
+    await storage.clearPasscode();
     await loadNotes();
     setIsSettingsOpen(false);
     setShowSplash(true);
@@ -358,6 +368,24 @@ export default function Index() {
   const handleGetStarted = async () => {
     await storage.setHasSetup(true);
     setShowSplash(false);
+    // After splash, check if passcode needs to be created
+    const hasPasscode = await storage.hasPasscode();
+    if (!hasPasscode) {
+      setShowCreatePasscode(true);
+    }
+  };
+
+  const handlePasscodeCreated = async (passcode: string) => {
+    await storage.setPasscode(passcode);
+    setShowCreatePasscode(false);
+    // Animate in the main content
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+    await loadNotes();
   };
 
   // Show splash screen while checking setup or if setup not completed
@@ -365,6 +393,15 @@ export default function Index() {
     return (
       <View className="flex-1" style={{ backgroundColor: bgColor }}>
         <SplashScreen onGetStarted={handleGetStarted} />
+      </View>
+    );
+  }
+
+  // Show create passcode screen if passcode needs to be created
+  if (showCreatePasscode) {
+    return (
+      <View className="flex-1" style={{ backgroundColor: bgColor }}>
+        <CreatePasscodeScreen onComplete={handlePasscodeCreated} />
       </View>
     );
   }

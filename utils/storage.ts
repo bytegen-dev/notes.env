@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const NOTES_KEY = '@notes_app_notes';
 const HAS_SETUP_KEY = '@notes_app_has_setup';
 const IS_LOCKED_KEY = '@notes_app_is_locked';
+const PASSCODE_KEY = '@notes_app_passcode';
 
 export interface Note {
   id: string;
@@ -122,6 +123,41 @@ export const storage = {
       await AsyncStorage.setItem(IS_LOCKED_KEY, isLocked ? 'true' : 'false');
     } catch (error) {
       console.error('Error setting lock status:', error);
+    }
+  },
+
+  async getPasscode(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(PASSCODE_KEY);
+    } catch (error) {
+      console.error('Error getting passcode:', error);
+      return null;
+    }
+  },
+
+  async setPasscode(passcode: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(PASSCODE_KEY, passcode);
+    } catch (error) {
+      console.error('Error setting passcode:', error);
+    }
+  },
+
+  async hasPasscode(): Promise<boolean> {
+    try {
+      const passcode = await AsyncStorage.getItem(PASSCODE_KEY);
+      return passcode !== null && passcode.length === 4;
+    } catch (error) {
+      console.error('Error checking passcode:', error);
+      return false;
+    }
+  },
+
+  async clearPasscode(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(PASSCODE_KEY);
+    } catch (error) {
+      console.error('Error clearing passcode:', error);
     }
   },
 };

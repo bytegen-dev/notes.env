@@ -8,12 +8,11 @@ import {
   View,
 } from "react-native";
 import { useLanguage } from "../utils/i18n/LanguageContext";
-import { storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 import { PasscodeInput } from "./PasscodeInput";
 
-interface LockScreenProps {
-  onUnlock: () => void;
+interface CreatePasscodeScreenProps {
+  onComplete: (passcode: string) => void;
 }
 
 const splashImages = [
@@ -22,11 +21,15 @@ const splashImages = [
   require("../assets/images/splash-3.gif"),
 ];
 
-export const LockScreen = ({ onUnlock }: LockScreenProps) => {
+export const CreatePasscodeScreen = ({
+  onComplete,
+}: CreatePasscodeScreenProps) => {
   const { t } = useLanguage();
   const theme = useTheme();
   const [splashIndex, setSplashIndex] = useState(0);
   const [passcode, setPasscode] = useState("");
+  const [confirmPasscode, setConfirmPasscode] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const textColor = "#ffffff";
   const bgColor = "#000000";
@@ -36,54 +39,65 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
     setSplashIndex((prev) => (prev + 1) % splashImages.length);
   };
 
-  const handleDigitPress = async (digit: string) => {
-    if (passcode.length < 4) {
-      const newPasscode = passcode + digit;
-      setPasscode(newPasscode);
+  const handleDigitPress = (digit: string) => {
+    if (!isConfirming) {
+      if (passcode.length < 4) {
+        const newPasscode = passcode + digit;
+        setPasscode(newPasscode);
 
-      // If 4 digits entered, validate and unlock
-      if (newPasscode.length === 4) {
-        // Small delay to show the 4th digit
-        setTimeout(async () => {
-          const isValid = await validatePasscode(newPasscode);
-          if (isValid) {
-            setPasscode("");
-            onUnlock();
-          } else {
-            // Invalid passcode, show error and reset
-            Alert.alert(t.lockScreen.locked, t.lockScreen.incorrectPasscode);
-            setPasscode("");
-          }
-        }, 100);
+        // If 4 digits entered, move to confirmation
+        if (newPasscode.length === 4) {
+          setIsConfirming(true);
+        }
+      }
+    } else {
+      if (confirmPasscode.length < 4) {
+        const newConfirmPasscode = confirmPasscode + digit;
+        setConfirmPasscode(newConfirmPasscode);
+
+        // If 4 digits entered, check if they match
+        if (newConfirmPasscode.length === 4) {
+          handleConfirm(newConfirmPasscode);
+        }
       }
     }
   };
 
   const handleDelete = () => {
-    if (passcode.length > 0) {
-      setPasscode(passcode.slice(0, -1));
+    if (!isConfirming) {
+      if (passcode.length > 0) {
+        setPasscode(passcode.slice(0, -1));
+      }
+    } else {
+      if (confirmPasscode.length > 0) {
+        setConfirmPasscode(confirmPasscode.slice(0, -1));
+      }
     }
   };
 
-  const validatePasscode = async (code: string): Promise<boolean> => {
-    const codeToCheck = code.trim();
-    if (codeToCheck.length !== 4) {
-      return false;
+  const handleConfirm = (code?: string) => {
+    const codeToCheck = code || confirmPasscode;
+    if (codeToCheck.length === 4) {
+      if (codeToCheck === passcode) {
+        // Passcodes match, save and complete
+        onComplete(passcode);
+      } else {
+        // Passcodes don't match, show error and reset
+        Alert.alert(
+          t.createPasscode.createPasscode,
+          t.createPasscode.passcodesDoNotMatch
+        );
+        setPasscode("");
+        setConfirmPasscode("");
+        setIsConfirming(false);
+      }
     }
-
-    const storedPasscode = await storage.getPasscode();
-    if (!storedPasscode) {
-      // No passcode stored, something went wrong
-      Alert.alert(
-        t.lockScreen.locked,
-        "No passcode found. Please set up a passcode."
-      );
-      return false;
-    }
-
-    const storedPasscodeTrimmed = storedPasscode.trim();
-    return storedPasscodeTrimmed === codeToCheck;
   };
+
+  const currentPasscode = isConfirming ? confirmPasscode : passcode;
+  const title = isConfirming
+    ? t.createPasscode.confirmPasscode
+    : t.createPasscode.enterPasscode;
 
   return (
     <View className="flex-1">
@@ -111,7 +125,7 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
               className="text-4xl font-mono font-bold tracking-tighter"
               style={{ color: textColor }}
             >
-              {t.lockScreen.locked}_
+              {t.createPasscode.createPasscode}
             </Text>
           </View>
 
@@ -123,7 +137,7 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
                 className="text-base font-mono"
                 style={{ color: textColor, opacity: 0.8 }}
               >
-                {t.lockScreen.enterPasscode}
+                {title}
               </Text>
               <View className="flex-row gap-3">
                 {[0, 1, 2, 3].map((index) => (
@@ -133,16 +147,19 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
                     style={{
                       borderColor: textColor,
                       backgroundColor:
-                        index < passcode.length ? textColor : "transparent",
+                        index < currentPasscode.length
+                          ? textColor
+                          : "transparent",
                     }}
                   />
                 ))}
               </View>
             </View>
             <PasscodeInput
-              passcode={passcode}
+              passcode={currentPasscode}
               onDigitPress={handleDigitPress}
               onDelete={handleDelete}
+              disableBiometric={true}
             />
           </View>
         </ImageBackground>
@@ -150,3 +167,4 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
     </View>
   );
 };
+
