@@ -19,7 +19,7 @@ export const LanguageProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [language, setLanguageState] = useState<Language>("ja"); // Default to Japanese
+  const [language, setLanguageState] = useState<Language>("en"); // Default to English
 
   useEffect(() => {
     loadLanguage();
@@ -61,4 +61,3 @@ export const useLanguage = () => {
   }
   return context;
 };
-

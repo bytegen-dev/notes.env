@@ -3,11 +3,13 @@ import { useRouter } from "expo-router";
 import { ArrowLeft, Edit, Pin, PinOff, Trash2 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, Text, View } from "react-native";
+import { decryptContent, encryptContent } from "../utils/encryption";
 import { formatDate } from "../utils/formatDate";
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note, storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
+import { LockModal } from "./LockModal";
 import { NoteEditor } from "./NoteEditor";
 
 interface NotePreviewContentProps {
@@ -31,6 +33,10 @@ export const NotePreviewContent = ({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [isDecrypted, setIsDecrypted] = useState(false);
+  const [encrypted, setEncrypted] = useState(false);
 
   useEffect(() => {
     loadNote();
@@ -40,12 +46,25 @@ export const NotePreviewContent = ({
     if (note) {
       setTitle(note.title);
       setContent(note.content);
+      setEncrypted(note.encrypted || false);
+      // Reset decryption state when note changes
+      if (note.encrypted) {
+        setDecryptedContent(null);
+        setIsDecrypted(false);
+        setShowLockModal(true);
+      } else {
+        setDecryptedContent(note.content);
+        setIsDecrypted(true);
+        setShowLockModal(false);
+      }
     }
   }, [note]);
 
   const loadNote = async () => {
     if (!noteId) {
       setNote(null);
+      setDecryptedContent(null);
+      setIsDecrypted(false);
       return;
     }
     const notes = await storage.getNotes();
@@ -53,7 +72,28 @@ export const NotePreviewContent = ({
     setNote(foundNote || null);
   };
 
+  const handleUnlock = async (passcode: string) => {
+    if (!note || !note.encrypted) return;
+
+    try {
+      const decrypted = decryptContent(note.content, passcode);
+      setDecryptedContent(decrypted);
+      setIsDecrypted(true);
+      setShowLockModal(false);
+    } catch (error) {
+      Alert.alert(
+        t.lockScreen.locked,
+        error instanceof Error ? error.message : "Failed to decrypt note"
+      );
+    }
+  };
+
   const handleEdit = () => {
+    // If note is encrypted and not decrypted, show lock modal first
+    if (note?.encrypted && !isDecrypted) {
+      setShowLockModal(true);
+      return;
+    }
     setIsEditorOpen(true);
   };
 
@@ -93,7 +133,33 @@ export const NotePreviewContent = ({
 
   const saveNote = async () => {
     if (!note || !title.trim()) return;
-    await storage.updateNote(note.id, { title, content });
+
+    // Get passcode for encryption
+    const passcode = await storage.getPasscode();
+    if (!passcode && encrypted) {
+      Alert.alert(
+        "Error",
+        "Passcode is required to encrypt notes. Please set up a passcode first."
+      );
+      return;
+    }
+
+    // Encrypt content if needed
+    let finalContent = decryptedContent || content;
+    if (encrypted && passcode) {
+      try {
+        finalContent = encryptContent(finalContent, passcode);
+      } catch (error) {
+        Alert.alert("Error", "Failed to encrypt note content.");
+        return;
+      }
+    }
+
+    await storage.updateNote(note.id, {
+      title,
+      content: finalContent,
+      encrypted,
+    });
     await loadNote();
     closeEditor();
     onNoteUpdate?.();
@@ -189,9 +255,15 @@ export const NotePreviewContent = ({
           >
             {note.title || t.noteCard.untitled}
           </Text>
-          {note.content ? (
+          {note.encrypted && !isDecrypted ? (
+            <View className="items-center justify-center py-8">
+              <Text className="text-base" style={{ color: mutedColor }}>
+                {t.lockScreen.enterPasscode}
+              </Text>
+            </View>
+          ) : decryptedContent || note.content ? (
             <Text className="text-base leading-6" style={{ color: textColor }}>
-              {note.content}
+              {decryptedContent || note.content}
             </Text>
           ) : (
             <Text className="text-base italic" style={{ color: mutedColor }}>
@@ -200,15 +272,39 @@ export const NotePreviewContent = ({
           )}
         </ScrollView>
       </View>
+      <LockModal
+        visible={showLockModal}
+        onUnlock={handleUnlock}
+        onClose={() => {
+          if (!isDecrypted && note?.encrypted) {
+            // If user closes without decrypting, go back or clear selection
+            if (!isSplitView) {
+              router.back();
+            } else {
+              // In split view, just close the modal but keep note selected
+              setShowLockModal(false);
+            }
+          } else {
+            setShowLockModal(false);
+          }
+        }}
+      />
       <NoteEditor
         visible={isEditorOpen}
         note={note}
         title={title}
-        content={content}
+        content={decryptedContent || content}
         onTitleChange={setTitle}
-        onContentChange={setContent}
+        onContentChange={(newContent) => {
+          setContent(newContent);
+          if (isDecrypted) {
+            setDecryptedContent(newContent);
+          }
+        }}
         onClose={closeEditor}
         onSave={saveNote}
+        encrypted={encrypted}
+        onEncryptedChange={setEncrypted}
       />
     </>
   );

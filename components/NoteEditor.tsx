@@ -1,11 +1,13 @@
 import { BlurView } from "expo-blur";
-import { Check, X } from "lucide-react-native";
+import { Check, Shield, X } from "lucide-react-native";
 import {
   Modal,
   Platform,
   ScrollView,
+  Switch,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useLanguage } from "../utils/i18n/LanguageContext";
@@ -22,6 +24,8 @@ interface NoteEditorProps {
   onContentChange: (content: string) => void;
   onClose: () => void;
   onSave: () => void;
+  encrypted?: boolean;
+  onEncryptedChange?: (encrypted: boolean) => void;
 }
 
 export const NoteEditor = ({
@@ -33,9 +37,12 @@ export const NoteEditor = ({
   onContentChange,
   onClose,
   onSave,
+  encrypted = false,
+  onEncryptedChange,
 }: NoteEditorProps) => {
   const { t } = useLanguage();
-  const { textColor, mutedColor, isDark, accentColor } = useTheme();
+  const { textColor, mutedColor, isDark, accentColor, borderColor, cardBg } =
+    useTheme();
 
   // Use a muted background for the modal
   const modalBg = isDark ? "#0a0a0a" : "#fafafa";
@@ -109,30 +116,74 @@ export const NoteEditor = ({
           </View>
         )}
 
-        <ScrollView
-          className="flex-1 p-4"
-          contentContainerStyle={{ paddingTop: 70 }}
-        >
-          <TextInput
-            placeholder={t.noteEditor.titlePlaceholder}
-            placeholderTextColor={mutedColor}
-            value={title}
-            onChangeText={onTitleChange}
-            className="text-xl font-bold tracking-tighter mb-4 p-0"
-            style={{ color: textColor }}
-            autoFocus
-          />
-          <TextInput
-            placeholder={t.noteEditor.contentPlaceholder}
-            placeholderTextColor={mutedColor}
-            value={content}
-            onChangeText={onContentChange}
-            multiline
-            className="text-base min-h-[200px] p-0"
-            style={{ color: textColor }}
-            textAlignVertical="top"
-          />
-        </ScrollView>
+        <View className="flex-1">
+          <ScrollView
+            className="flex-1 p-4"
+            contentContainerStyle={{ paddingTop: 70 }}
+          >
+            <TextInput
+              placeholder={t.noteEditor.titlePlaceholder}
+              placeholderTextColor={mutedColor}
+              value={title}
+              onChangeText={onTitleChange}
+              className="text-xl font-bold tracking-tighter mb-4 p-0"
+              style={{ color: textColor }}
+              autoFocus
+            />
+            <TextInput
+              placeholder={t.noteEditor.contentPlaceholder}
+              placeholderTextColor={mutedColor}
+              value={content}
+              onChangeText={onContentChange}
+              multiline
+              className="text-base min-h-[200px] p-0"
+              style={{ color: textColor }}
+              textAlignVertical="top"
+            />
+          </ScrollView>
+          {onEncryptedChange && (
+            <View className="border-t" style={{ borderTopColor: borderColor }}>
+              <TouchableOpacity
+                onPress={() => onEncryptedChange(!encrypted)}
+                className="p-4 pt-6 pb-12 flex-row items-center justify-between"
+                style={{
+                  borderColor: borderColor,
+                }}
+              >
+                <View className="flex-row items-center gap-3 flex-1">
+                  <Shield size={20} color={textColor} />
+                  <View className="flex-1">
+                    <Text
+                      className="text-base font-semibold"
+                      style={{ color: mutedColor }}
+                    >
+                      {encrypted
+                        ? t.noteEditor.encrypted
+                        : t.noteEditor.notEncrypted}
+                    </Text>
+                    {/* <Text
+                      className="text-sm mt-1"
+                      style={{ color: mutedColor }}
+                    >
+                      {encrypted
+                        ? t.noteEditor.encryptedDesc
+                        : t.noteEditor.notEncryptedDesc}
+                    </Text> */}
+                  </View>
+                </View>
+                <Switch
+                  value={encrypted}
+                  onValueChange={onEncryptedChange}
+                  trackColor={{
+                    false: mutedColor,
+                    true: Platform.OS === "ios" ? "#34C759" : "#4CAF50",
+                  }}
+                  thumbColor={Platform.OS === "ios" ? "#ffffff" : "#ffffff"}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </Modal>
   );

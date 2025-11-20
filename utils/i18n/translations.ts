@@ -37,6 +37,10 @@ export const translations = {
       editNote: "Edit Note",
       titlePlaceholder: "Title",
       contentPlaceholder: "Content",
+      encrypted: "Encrypted",
+      notEncrypted: "Not Encrypted",
+      encryptedDesc: "Content is encrypted with your passcode",
+      notEncryptedDesc: "Content is stored in plain text",
     },
     // Settings
     settings: {
@@ -146,6 +150,10 @@ export const translations = {
       editNote: "ノートを編集",
       titlePlaceholder: "名前",
       contentPlaceholder: "ノートの内容を入力してください...",
+      encrypted: "暗号化済み",
+      notEncrypted: "暗号化されていません",
+      encryptedDesc: "コンテンツはパスコードで暗号化されています",
+      notEncryptedDesc: "コンテンツはプレーンテキストで保存されています",
     },
     // Settings
     settings: {

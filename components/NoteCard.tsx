@@ -1,4 +1,4 @@
-import { Check } from "lucide-react-native";
+import { Check, Shield } from "lucide-react-native";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { formatDate } from "../utils/formatDate";
 import { useLanguage } from "../utils/i18n/LanguageContext";
@@ -88,20 +88,36 @@ export const NoteCard = ({
                 style={{ color: mutedColor }}
                 numberOfLines={1}
               >
-                {formatDate(note.updatedAt)} - {note.content}
+                {formatDate(note.updatedAt)}
+                {note.encrypted ? "" : ` - ${note.content}`}
               </Text>
-            ) : null}
+            ) : (
+              note.encrypted && (
+                <Text
+                  className="text-sm"
+                  style={{ color: mutedColor }}
+                  numberOfLines={1}
+                >
+                  {formatDate(note.updatedAt)}
+                </Text>
+              )
+            )}
           </View>
-          {isSelected && (
-            <View
-              className="w-6 h-6 rounded-full items-center justify-center"
-              style={{
-                backgroundColor: textColor,
-              }}
-            >
-              <Check size={16} color={cardBg} strokeWidth={3} />
-            </View>
-          )}
+          <View className="flex-row items-center gap-2">
+            {note.encrypted && (
+              <Shield size={16} color={mutedColor} strokeWidth={2} />
+            )}
+            {isSelected && (
+              <View
+                className="w-6 h-6 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: textColor,
+                }}
+              >
+                <Check size={16} color={cardBg} strokeWidth={3} />
+              </View>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
     </View>

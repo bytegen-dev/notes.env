@@ -1,9 +1,9 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Plus } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -26,6 +26,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { SettingsModal } from "../components/SettingsModal";
 import { SplashScreen } from "../components/SplashScreen";
 import { resetApp } from "../utils/appReset";
+import { encryptContent } from "../utils/encryption";
 import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note, storage } from "../utils/storage";
@@ -41,6 +42,7 @@ export default function Index() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [encrypted, setEncrypted] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [showCreatePasscode, setShowCreatePasscode] = useState(false);
@@ -72,6 +74,15 @@ export default function Index() {
       }).start();
     }
   }, [showSplash]);
+
+  // Refresh notes when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!showSplash && !isCheckingSetup) {
+        loadNotes();
+      }
+    }, [showSplash, isCheckingSetup])
+  );
 
   const checkSetup = async () => {
     const hasSetup = await storage.hasSetup();
@@ -165,22 +176,29 @@ export default function Index() {
     if (note) {
       setEditingNote(note);
       setTitle(note.title);
+      // If note is encrypted, we need to decrypt it first (handled in NotePreviewContent)
+      // For now, just set the encrypted flag
       setContent(note.content);
+      setEncrypted(note.encrypted || false);
     } else {
       setEditingNote(null);
       setTitle("");
       setContent("");
+      setEncrypted(false);
     }
     setIsEditorOpen(true);
   };
 
   const closeEditor = () => {
     setIsEditorOpen(false);
+    // Refresh notes when editor closes
+    loadNotes();
     // Delay state reset to allow modal animation to complete
     setTimeout(() => {
       setEditingNote(null);
       setTitle("");
       setContent("");
+      setEncrypted(false);
     }, 300);
   };
 
@@ -188,15 +206,44 @@ export default function Index() {
     // Title is required
     if (!title.trim()) return;
 
+    // Get passcode for encryption
+    const passcode = await storage.getPasscode();
+    if (!passcode && encrypted) {
+      Alert.alert(
+        "Error",
+        "Passcode is required to encrypt notes. Please set up a passcode first."
+      );
+      return;
+    }
+
+    // Encrypt content if needed
+    let finalContent = content;
+    if (encrypted && passcode) {
+      try {
+        finalContent = encryptContent(content, passcode);
+      } catch (error) {
+        Alert.alert("Error", "Failed to encrypt note content.");
+        return;
+      }
+    }
+
     if (editingNote) {
-      await storage.updateNote(editingNote.id, { title, content });
+      await storage.updateNote(editingNote.id, {
+        title,
+        content: finalContent,
+        encrypted,
+      });
       await loadNotes();
       // If editing in split view, keep it selected
       if (isTablet && selectedNoteId === editingNote.id) {
         setSelectedNoteId(editingNote.id);
       }
     } else {
-      const newNote = await storage.addNote({ title, content });
+      const newNote = await storage.addNote({
+        title,
+        content: finalContent,
+        encrypted,
+      });
       await loadNotes();
       // If creating a new note in split view, select it
       if (isTablet && newNote) {
@@ -664,6 +711,8 @@ export default function Index() {
         onContentChange={setContent}
         onClose={closeEditor}
         onSave={saveNote}
+        encrypted={encrypted}
+        onEncryptedChange={setEncrypted}
       />
 
       <SettingsModal
