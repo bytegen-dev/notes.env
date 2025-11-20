@@ -4,6 +4,7 @@ import { Check, ChevronDown, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Dimensions,
   Modal,
   Platform,
   ScrollView,
@@ -311,39 +312,51 @@ export const SettingsModal = ({
           onClose={() => setShowLanguagePicker(false)}
         >
           <ScrollView className="w-full">
-            {languages.map((lang, index) => (
-              <TouchableOpacity
-                key={lang.code}
-                onPress={() => handleLanguageSelect(lang.code as "en" | "ja")}
-                className="p-4"
-                style={{
-                  borderBottomWidth: index < languages.length - 1 ? 1 : 0,
-                  borderBottomColor: borderColor,
-                }}
-              >
-                <View className="flex-row items-center justify-between w-full gap-4">
-                  <Text
-                    className="text-base"
-                    style={{
-                      color: textColor,
-                      fontWeight: language === lang.code ? "600" : "400",
-                    }}
-                  >
-                    {lang.name}
-                  </Text>
-                  {language === lang.code && (
-                    <View
-                      className="w-6 h-6 rounded-full items-center justify-center"
+            {languages.map((lang, index) => {
+              const SCREEN_WIDTH = Dimensions.get("window").width;
+              const isSmallScreen = SCREEN_WIDTH < 375;
+              const itemPadding = isSmallScreen ? 12 : 16;
+              
+              return (
+                <TouchableOpacity
+                  key={lang.code}
+                  onPress={() => handleLanguageSelect(lang.code as "en" | "ja")}
+                  style={{
+                    padding: itemPadding,
+                    borderBottomWidth: index < languages.length - 1 ? 1 : 0,
+                    borderBottomColor: borderColor,
+                  }}
+                >
+                  <View className="flex-row items-center justify-between w-full gap-4">
+                    <Text
                       style={{
-                        backgroundColor: textColor,
+                        color: textColor,
+                        fontWeight: language === lang.code ? "600" : "400",
+                        fontSize: isSmallScreen ? 14 : 16,
                       }}
                     >
-                      <Check size={16} color={cardBg} strokeWidth={3} />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
+                      {lang.name}
+                    </Text>
+                    {language === lang.code && (
+                      <View
+                        className="rounded-full items-center justify-center"
+                        style={{
+                          width: isSmallScreen ? 20 : 24,
+                          height: isSmallScreen ? 20 : 24,
+                          backgroundColor: textColor,
+                        }}
+                      >
+                        <Check 
+                          size={isSmallScreen ? 12 : 16} 
+                          color={cardBg} 
+                          strokeWidth={3} 
+                        />
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </Dialog>
       </Modal>

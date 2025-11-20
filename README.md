@@ -11,6 +11,7 @@ https://drive.google.com/file/d/1mim5UEt0VO6bbnHXHQ9ip8bnf0EWerzK/view?usp=shari
 - **Note Management** - Create, edit, delete, and pin notes
 - **Search** - Real-time search functionality
 - **Smart Organization** - Notes automatically organized by time periods (Pinned, Today, Yesterday, etc.)
+- **iPad Split-View** - Optimized split-screen layout for iPad with sidebar navigation
 - **Multi-language Support** - English and Japanese
 - **Import/Export** - Backup and restore notes as JSON
 - **Minimalist UI** - Black & white design with iOS blur effects
@@ -75,11 +76,13 @@ app/
   └── _layout.tsx        # Root layout
 
 components/
-  ├── Header.tsx         # App header with search
-  ├── NoteCard.tsx       # Individual note card
-  ├── NoteEditor.tsx     # Note creation/editing modal
-  ├── LockScreen.tsx     # Lock screen with passcode
-  ├── SplashScreen.tsx   # Initial splash screen
+  ├── Header.tsx              # App header with search
+  ├── NoteCard.tsx            # Individual note card
+  ├── NoteEditor.tsx          # Note creation/editing modal
+  ├── NotePreviewContent.tsx  # Reusable note preview component
+  ├── LockScreen.tsx          # Lock screen with passcode
+  ├── SplashScreen.tsx        # Initial splash screen
+  ├── PasscodeInput.tsx       # Custom passcode input keyboard
   └── ...
 
 utils/
@@ -124,23 +127,26 @@ eas build --platform android --profile production
 ## Security Features
 
 - **Passcode Protection**: 4-digit passcode required on first launch
-- **Biometric Authentication**: Optional Face ID/Fingerprint unlock
+- **Biometric Authentication**: Optional Face ID/Fingerprint unlock (configurable in settings)
 - **Auto-lock**: App automatically locks when closed
 - **Local Storage**: Notes stored securely using AsyncStorage
+- **Forgot Passcode**: Reset option with data clearing warning
 
 ## Note Management
 
 - Create and edit notes with title and content
-- Pin important notes
+- Pin important notes (visual indicator with filled button)
 - Delete notes with confirmation
 - Real-time search across all notes
 - Time-based organization (Pinned, Today, Yesterday, etc.)
+- Note preview screen with full content view
+- Long-press on notes for quick actions (pin/delete)
 
 ## Data Management
 
-- Export all notes as JSON
-- Import notes from JSON file
-- Reset app to clear all data
+- Export all notes as JSON (includes note IDs for import matching)
+- Import notes from JSON file (merge or replace options)
+- Reset app to clear all data (irreversible action)
 
 ## Configuration
 

@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { ReactNode, useEffect, useRef } from "react";
-import { Animated, Platform, Pressable, Text, View } from "react-native";
+import { Animated, Dimensions, Platform, Pressable, Text, View } from "react-native";
 import { useTheme } from "../utils/useTheme";
 
 interface DialogProps {
@@ -70,6 +70,14 @@ export const Dialog = ({
 
   if (!visible) return null;
 
+  const SCREEN_WIDTH = Dimensions.get("window").width;
+  const isSmallScreen = SCREEN_WIDTH < 375; // iPhone SE width is 375
+  const dialogWidth = isSmallScreen 
+    ? SCREEN_WIDTH - 32 // 16px margin on each side
+    : Math.min(SCREEN_WIDTH * 0.85, 400);
+  const padding = isSmallScreen ? 12 : 16;
+  const titlePadding = isSmallScreen ? 12 : 16;
+
   const dialogContent = (
     <Animated.View
       style={{
@@ -83,36 +91,59 @@ export const Dialog = ({
         style={{
           backgroundColor: bgColor,
           borderColor: borderColor,
-          width: "80%",
-          maxWidth: 400,
+          width: dialogWidth,
+          marginHorizontal: 16,
         }}
       >
         <View
-          className="p-4 border-b"
-          style={{ borderBottomColor: borderColor }}
+          className="border-b"
+          style={{ 
+            borderBottomColor: borderColor,
+            padding: titlePadding,
+          }}
         >
-          <Text className="text-lg font-semibold" style={{ color: textColor }}>
+          <Text 
+            className="font-semibold" 
+            style={{ 
+              color: textColor,
+              fontSize: isSmallScreen ? 16 : 18,
+            }}
+          >
             {title}
           </Text>
         </View>
-        <View className="p-4">
+        <View style={{ padding }}>
           {children ? (
             children
           ) : (
             <>
               {message && (
                 <Text
-                  className="text-base mb-4"
-                  style={{ color: textColor, opacity: 0.8 }}
+                  className="mb-4"
+                  style={{ 
+                    color: textColor, 
+                    opacity: 0.8,
+                    fontSize: isSmallScreen ? 14 : 16,
+                  }}
                 >
                   {message}
                 </Text>
               )}
               <View className="flex-row gap-3 justify-end">
-                <Pressable onPress={onClose} className="px-4 py-2 rounded-lg">
+                <Pressable 
+                  onPress={onClose} 
+                  style={{
+                    paddingHorizontal: isSmallScreen ? 12 : 16,
+                    paddingVertical: isSmallScreen ? 8 : 10,
+                  }}
+                  className="rounded-lg"
+                >
                   <Text
-                    className="text-base font-semibold"
-                    style={{ color: textColor }}
+                    className="font-semibold"
+                    style={{ 
+                      color: textColor,
+                      fontSize: isSmallScreen ? 14 : 16,
+                    }}
                   >
                     {cancelText}
                   </Text>
@@ -120,21 +151,24 @@ export const Dialog = ({
                 {onConfirm && (
                   <Pressable
                     onPress={onConfirm}
-                    className="px-4 py-2 rounded-lg"
                     style={{
+                      paddingHorizontal: isSmallScreen ? 12 : 16,
+                      paddingVertical: isSmallScreen ? 8 : 10,
                       backgroundColor:
                         confirmStyle === "destructive"
                           ? destructiveColor
                           : undefined,
                     }}
+                    className="rounded-lg"
                   >
                     <Text
-                      className="text-base font-semibold"
+                      className="font-semibold"
                       style={{
                         color:
                           confirmStyle === "destructive"
                             ? "#ffffff"
                             : textColor,
+                        fontSize: isSmallScreen ? 14 : 16,
                       }}
                     >
                       {confirmText || "Confirm"}
