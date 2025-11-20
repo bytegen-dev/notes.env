@@ -1,9 +1,9 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Plus } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -74,6 +74,15 @@ export default function Index() {
       }).start();
     }
   }, [showSplash]);
+
+  // Refresh notes when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!showSplash && !isCheckingSetup) {
+        loadNotes();
+      }
+    }, [showSplash, isCheckingSetup])
+  );
 
   const checkSetup = async () => {
     const hasSetup = await storage.hasSetup();
@@ -182,6 +191,8 @@ export default function Index() {
 
   const closeEditor = () => {
     setIsEditorOpen(false);
+    // Refresh notes when editor closes
+    loadNotes();
     // Delay state reset to allow modal animation to complete
     setTimeout(() => {
       setEditingNote(null);

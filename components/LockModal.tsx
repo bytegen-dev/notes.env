@@ -1,8 +1,12 @@
+import { BlurView } from "expo-blur";
 import * as LocalAuthentication from "expo-local-authentication";
+import { X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Alert, Modal, Platform, Pressable, Text, View } from "react-native";
+import { Alert, Modal, Platform, ScrollView, Text, View } from "react-native";
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { storage } from "../utils/storage";
+import { useTheme } from "../utils/useTheme";
+import { IconButton } from "./IconButton";
 import { PasscodeInput } from "./PasscodeInput";
 
 interface LockModalProps {
@@ -13,6 +17,7 @@ interface LockModalProps {
 
 export const LockModal = ({ visible, onUnlock, onClose }: LockModalProps) => {
   const { t } = useLanguage();
+  const { isDark, textColor, mutedColor } = useTheme();
   const [passcode, setPasscode] = useState("");
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
@@ -112,38 +117,69 @@ export const LockModal = ({ visible, onUnlock, onClose }: LockModalProps) => {
     return storedPasscodeTrimmed === codeToCheck;
   };
 
+  const modalBg = isDark ? "#0a0a0a" : "#fafafa";
+  const passcodeIndicatorColor = isDark ? "#ffffff" : "#000000";
+
+  const headerContent = (
+    <View className="flex-row justify-between items-center">
+      {onClose && (
+        <IconButton onPress={onClose} variant="outline">
+          <X size={18} />
+        </IconButton>
+      )}
+      <Text
+        className="text-lg font-mono font-semibold"
+        style={{ color: textColor }}
+      >
+        {t.lockScreen.locked}
+      </Text>
+      <View style={{ width: 40 }} />
+
+      {!onClose && <View style={{ width: 40 }} />}
+    </View>
+  );
+
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <Pressable
-        onPress={onClose}
-        className="flex-1 justify-center items-center"
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
-      >
-        <Pressable
-          onPress={(e) => e.stopPropagation()}
-          className="rounded-2xl p-6"
-          style={{
-            backgroundColor: "#000000",
-            width: "85%",
-            maxWidth: 400,
+      <View style={{ flex: 1, backgroundColor: modalBg }}>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={20}
+            tint={isDark ? "dark" : "light"}
+            className="absolute top-0 left-0 right-0 pt-4 pb-4 px-4 z-[1000] border-b"
+            style={{ borderBottomColor: "rgba(128, 128, 128, 0.2)" }}
+          >
+            {headerContent}
+          </BlurView>
+        ) : (
+          <View
+            className="absolute top-0 left-0 right-0 pt-4 pb-4 px-4 z-[1000] border-b"
+            style={{
+              backgroundColor: isDark
+                ? "rgba(0, 0, 0, 0.5)"
+                : "rgba(255, 255, 255, 0.5)",
+              borderBottomColor: "rgba(128, 128, 128, 0.2)",
+            }}
+          >
+            {headerContent}
+          </View>
+        )}
+
+        <ScrollView
+          className="flex-1 p-4"
+          contentContainerStyle={{
+            paddingTop: 100,
+            flexGrow: 1,
+            justifyContent: "center",
           }}
         >
           <View className="items-center gap-4 mb-6">
-            <Text
-              className="text-xl font-mono font-semibold"
-              style={{ color: "#ffffff" }}
-            >
-              {t.lockScreen.locked}
-            </Text>
-            <Text
-              className="text-base font-mono"
-              style={{ color: "#ffffff", opacity: 0.8 }}
-            >
+            <Text className="text-base font-mono" style={{ color: mutedColor }}>
               {t.lockScreen.enterPasscode}
             </Text>
             <View className="flex-row gap-3">
@@ -152,9 +188,11 @@ export const LockModal = ({ visible, onUnlock, onClose }: LockModalProps) => {
                   key={index}
                   className="w-4 h-4 rounded-full border-2"
                   style={{
-                    borderColor: "#ffffff",
+                    borderColor: passcodeIndicatorColor,
                     backgroundColor:
-                      index < passcode.length ? "#ffffff" : "transparent",
+                      index < passcode.length
+                        ? passcodeIndicatorColor
+                        : "transparent",
                   }}
                 />
               ))}
@@ -167,8 +205,8 @@ export const LockModal = ({ visible, onUnlock, onClose }: LockModalProps) => {
             onBiometricPress={handleBiometricPress}
             biometricEnabled={biometricEnabled}
           />
-        </Pressable>
-      </Pressable>
+        </ScrollView>
+      </View>
     </Modal>
   );
 };

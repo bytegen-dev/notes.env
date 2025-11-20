@@ -1,4 +1,4 @@
-import { Check, Lock } from "lucide-react-native";
+import { Check, Shield } from "lucide-react-native";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { formatDate } from "../utils/formatDate";
 import { useLanguage } from "../utils/i18n/LanguageContext";
@@ -105,7 +105,7 @@ export const NoteCard = ({
           </View>
           <View className="flex-row items-center gap-2">
             {note.encrypted && (
-              <Lock size={16} color={mutedColor} strokeWidth={2} />
+              <Shield size={16} color={mutedColor} strokeWidth={2} />
             )}
             {isSelected && (
               <View
