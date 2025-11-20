@@ -13,6 +13,7 @@ export interface Note {
   createdAt: number;
   updatedAt: number;
   pinned?: boolean;
+  encrypted?: boolean;
 }
 
 export const storage = {
