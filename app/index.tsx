@@ -3,10 +3,9 @@ import { File, Paths } from "expo-file-system";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Plus } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
-  Animated,
   Dimensions,
   FlatList,
   KeyboardAvoidingView,
@@ -14,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AnimatedSection } from "../components/AnimatedSection";
 import { CreatePasscodeScreen } from "../components/CreatePasscodeScreen";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
@@ -49,7 +47,6 @@ export default function Index() {
   const [isLocked, setIsLocked] = useState(false);
   const [isCheckingLock, setIsCheckingLock] = useState(true);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const { t, language } = useLanguage();
   const { bgColor, cardBg, borderColor, accentColor } = useTheme();
@@ -66,12 +63,6 @@ export default function Index() {
   useEffect(() => {
     if (!showSplash) {
       loadNotes();
-      // Animate in the main content
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
     }
   }, [showSplash]);
 
@@ -115,22 +106,11 @@ export default function Index() {
     const newLockStatus = !isLocked;
     await storage.setLocked(newLockStatus);
     setIsLocked(newLockStatus);
-    // If locking, reset fade animation for lock screen
-    if (newLockStatus) {
-      fadeAnim.setValue(1);
-    }
   };
 
   const handleUnlock = async () => {
     await storage.setLocked(false);
     setIsLocked(false);
-    // Reset fade animation for smooth transition
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
     // Reload notes if needed
     if (!showSplash) {
       await loadNotes();
@@ -457,13 +437,6 @@ export default function Index() {
   const handlePasscodeCreated = async (passcode: string) => {
     await storage.setPasscode(passcode);
     setShowCreatePasscode(false);
-    // Animate in the main content
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
     await loadNotes();
   };
 
@@ -550,7 +523,7 @@ export default function Index() {
               sectionData[sectionData.length - 1]?.id === itemNote.note.id;
 
             if (section.title === t.sections.pinned) {
-              // For Pinned section, wrap all items in AnimatedSection with container
+              // For Pinned section, wrap all items in container
               const pinnedSection = sections.find(
                 (s) => s.title === t.sections.pinned
               );
@@ -558,28 +531,30 @@ export default function Index() {
                 pinnedSection?.data[0]?.id === itemNote.note.id;
 
               if (isFirstPinnedItem) {
+                // Show/hide based on collapse state without animation
+                if (isPinnedCollapsed) {
+                  return null;
+                }
                 return (
-                  <AnimatedSection isCollapsed={isPinnedCollapsed}>
-                    <View
-                      className="rounded-xl border overflow-hidden mb-3"
-                      style={{
-                        backgroundColor: cardBg,
-                        borderColor,
-                      }}
-                    >
-                      {pinnedSection?.data.map((note, index) => (
-                        <NoteCard
-                          key={note.id}
-                          note={note}
-                          onPress={handleNotePress}
-                          onPin={togglePin}
-                          onDelete={deleteNote}
-                          isLast={index === pinnedSection.data.length - 1}
-                          isSelected={isTablet && selectedNoteId === note.id}
-                        />
-                      ))}
-                    </View>
-                  </AnimatedSection>
+                  <View
+                    className="rounded-xl border overflow-hidden mb-3"
+                    style={{
+                      backgroundColor: cardBg,
+                      borderColor,
+                    }}
+                  >
+                    {pinnedSection?.data.map((note, index) => (
+                      <NoteCard
+                        key={note.id}
+                        note={note}
+                        onPress={handleNotePress}
+                        onPin={togglePin}
+                        onDelete={deleteNote}
+                        isLast={index === pinnedSection.data.length - 1}
+                        isSelected={isTablet && selectedNoteId === note.id}
+                      />
+                    ))}
+                  </View>
                 );
               }
               return null; // Other items are already rendered in the wrapper
@@ -640,12 +615,7 @@ export default function Index() {
       style={{ backgroundColor: bgColor }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <Animated.View
-        className="flex-1"
-        style={{
-          opacity: fadeAnim,
-        }}
-      >
+      <View className="flex-1">
         {isTablet ? (
           <View className="flex-1 flex-row">
             {/* Sidebar - Notes List */}
@@ -675,7 +645,7 @@ export default function Index() {
         ) : (
           notesListContent
         )}
-      </Animated.View>
+      </View>
 
       {/* Floating Action Button */}
       {!isTablet && (
